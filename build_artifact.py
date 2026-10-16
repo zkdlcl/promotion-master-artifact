@@ -64,12 +64,15 @@ body = body[:k] + css + '\n' + body[k:]
 js = ''.join(rd(n) for n in ['lawdata.js', 'rev-tab.js', 'ux-polish.js', 'ux2.js', 'ux3.js', 'ux4.js', 'ux5.js', 'ux6.js'])
 rep('/* 시작 */', js + '\n/* 시작 */')
 
-open(P('orgmaster.html'), 'w', encoding='utf8').write(body)
+open(P('orgmaster.html'), 'w', encoding='utf8', newline='
+').write(body)
 print('body chars', len(body), 'bytes', len(body.encode('utf8')))
 
 # 테스트용: 게시 때 자동으로 붙는 외곽 틀(viewport meta 포함)을 붙인 복사본
 wrapped = s[:i] + body + '\n</body></html>'
-open(P('orgmaster.wrapped.html'), 'w', encoding='utf8').write(wrapped)
+open(P('orgmaster.wrapped.html'), 'w', encoding='utf8', newline='
+').write(wrapped)
 # 규정 파일과 같은 폴더 구조로 둔 테스트 사이트 (로컬 서버로 띄워 fetch 까지 점검)
 os.makedirs(P('site'), exist_ok=True)
-open(P(os.path.join('site', 'index.html')), 'w', encoding='utf8').write(wrapped)
+open(P(os.path.join('site', 'index.html')), 'w', encoding='utf8', newline='
+').write(wrapped)

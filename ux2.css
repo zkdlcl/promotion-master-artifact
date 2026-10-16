@@ -1,0 +1,24 @@
+/* 기출 묶음 카드 */
+.pk{display:flex;gap:12px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin:10px 0}
+.pk-m{flex:1;min-width:0;display:grid;gap:4px;overflow-wrap:anywhere}
+.pk .b-red{flex:none;min-height:44px;white-space:nowrap}
+/* 뻥뚫 */
+.bt-art{font-size:1.06rem;line-height:2.15;margin:10px 0;overflow-wrap:anywhere}
+.bt-art .ln{margin:.2em 0}
+.bt-in{font:inherit;font-size:1rem;text-indent:0;padding:2px 6px;border:0;border-bottom:2px solid var(--red);background:var(--red-bg);color:var(--ink);border-radius:4px 4px 0 0;text-align:center;min-width:3em;max-width:100%}
+.bt-in:focus{outline:2px solid var(--red);outline-offset:1px}
+.bt-in:disabled{opacity:1}
+.bt-in.ok{background:var(--ok-bg);border-bottom-color:var(--ok);color:var(--ok);font-weight:700}
+.bt-in.no{background:var(--red-bg);color:var(--red);text-decoration:line-through}
+.bt-fix{background:var(--ok-bg);color:var(--ok);font-weight:700;border-radius:4px;padding:0 4px;margin-left:2px}
+.bt-tap{border-radius:4px;padding:0 3px;color:transparent;background:var(--blank);border-bottom:2px solid var(--blank-line);cursor:pointer;user-select:none}
+.bt-tap.rev{color:var(--ok);background:var(--ok-bg)}
+/* 오늘 추천 */
+.rec{display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px dashed var(--line)}
+.rec:last-child{border-bottom:0}
+.rec .grow{min-width:0;overflow-wrap:anywhere}
+/* 스터디 일정 */
+.sch-n{display:flex;gap:14px;align-items:center;margin:10px 0}
+.sch-dd{flex:none;font-weight:800;font-size:1.6rem;color:var(--red);min-width:3.2em;text-align:center;font-variant-numeric:tabular-nums}
+.sch-rh{margin:12px 0 2px;font-weight:800;color:var(--red);font-size:.85rem}
+.exrow .dd.chg{text-decoration:underline wavy var(--red);text-underline-offset:3px}

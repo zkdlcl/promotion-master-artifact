@@ -1,0 +1,111 @@
+/* ═════ 참조 패널 ═════ */
+.pk-ov{position:fixed;inset:0;z-index:95}
+.pk-scrim{position:absolute;inset:0;background:rgba(0,0,0,.38)}
+.pk-pan{position:absolute;background:var(--card);color:var(--ink);display:flex;flex-direction:column;box-shadow:0 0 24px rgba(0,0,0,.3);
+  left:0;right:0;bottom:0;height:88%;border-radius:16px 16px 0 0;border-top:3px solid var(--red);padding-bottom:env(safe-area-inset-bottom,0px);animation:pk-up .2s ease-out}
+.pk-top{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--line);flex:none}
+.pk-ti{flex:1;min-width:0;font-size:1.02rem;overflow-wrap:anywhere}
+.pk-tools{padding:8px 14px;border-bottom:1px solid var(--line);display:grid;gap:8px;flex:none}
+.pk-seg{gap:4px}
+.pk-seg button{min-height:40px;font-size:.85rem;padding:4px 6px}
+.pk-act{justify-content:space-between;flex-wrap:nowrap;gap:6px}
+.pk-act .rc{flex:none;font-size:.82rem;padding:6px 10px;white-space:nowrap}
+.pk-act .rc:disabled{opacity:.35}
+.pk-body{flex:1;overflow-y:auto;padding:12px 16px 24px;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+.pk-art .ln{margin:.25em 0}
+@media (min-width:768px){
+  .pk-pan{left:auto;top:0;height:auto;width:min(480px,92vw);border-radius:0;border-top:0;border-left:3px solid var(--red);animation:pk-in .2s ease-out;padding-top:env(safe-area-inset-top,0px)}
+}
+@keyframes pk-up{from{transform:translateY(40px);opacity:.4}to{transform:none;opacity:1}}
+@keyframes pk-in{from{transform:translateX(40px);opacity:.4}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.pk-pan{animation:none}}
+.xr{padding:2px 1px}
+/* 공통 가리기 버튼 */
+.fab-mode{position:fixed;left:max(12px,env(safe-area-inset-left,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:60;min-height:48px;padding:0 18px;border-radius:99px;border:0;background:var(--red);color:#fff;font:inherit;font-weight:800;box-shadow:0 2px 10px rgba(0,0,0,.35);cursor:pointer}
+/* 개정·신설 표시는 기본 숨김 (개정 탭은 항상 표시) */
+body:not(.show-amend) .amend{display:none}
+#p-rev .amend{display:inline}
+.fab-mode.fab-amend{bottom:calc(74px + env(safe-area-inset-bottom,0px));background:var(--card);color:var(--ink);border:2px solid var(--red)}
+.pk-am{justify-self:start}
+/* 회독 목차 */
+.rd-wrap{display:block}
+.rd-main{min-width:0}
+#r-toc{display:none}
+#r-toc .toc-ch{display:block;width:100%;text-align:left;border:0;background:none;font:inherit;font-weight:800;color:var(--red);padding:10px 8px 4px;cursor:pointer}
+#r-toc .toc-a{display:flex;gap:6px;align-items:baseline;width:100%;text-align:left;border:0;background:none;font:inherit;font-size:.92rem;padding:7px 10px;border-radius:8px;min-height:40px;cursor:pointer;color:var(--ink)}
+#r-toc .toc-a.on{background:var(--red-bg);color:var(--red);font-weight:700}
+#r-toc .ck{flex:none;width:1.1em;color:var(--ok);font-weight:800}
+button{touch-action:manipulation}
+.fab-mode .ft-full{display:none}
+.fab-mode .ft-short{display:inline;font-size:1.15rem}
+main{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}
+  .fab-mode{min-width:48px;padding:0 14px;justify-content:center}
+.fab-mode.fab-amend{bottom:calc(70px + env(safe-area-inset-bottom,0px))}
+.fab-mode.fab-amend[aria-pressed="true"]{background:var(--red);color:#fff}
+/* ═════ 태블릿 우선 (≥768px) ═════ */
+@media (min-width:768px){
+  body{font-size:17px}
+  .hd,.tabs,main{max-width:1100px}
+  main{padding:20px 28px}
+  .tab{padding:12px 18px;font-size:1rem}
+  .chip,.rc,.fsc button,.cs button,.seg button,button.b-red,button.b-line{min-height:44px}
+  .card,.rv-item,.fr2,.pk{padding:18px 22px}
+  .kpis{grid-template-columns:repeat(4,1fr)}
+  .cs-box{padding:10px 14px;gap:8px}
+  .pk-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px}
+  .pk-grid .pk{margin:0}
+  .rv-cmp{gap:14px}
+  .bt-art{font-size:1.15rem}
+}
+@media (min-width:1024px){
+  .hd,.tabs,main{max-width:1280px}
+  .tabs{justify-content:flex-start}
+  #p-today.on{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:24px;align-items:start}
+  .td-l,.td-r{min-width:0}
+  .fr2-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  .fr2-grid .fr2{margin:0}
+  .bt-grid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:24px;align-items:start}
+  .bt-r{position:sticky;top:calc(var(--hh,96px) + 12px)}
+  .rd-wrap{display:grid;grid-template-columns:280px minmax(0,1fr);gap:24px;align-items:start}
+  #r-toc{display:block;position:sticky;top:calc(var(--hh,96px) + 10px);max-height:calc(100vh - var(--hh,96px) - 30px);overflow-y:auto;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:6px}
+  .cs-nav{display:none}
+  /* 읽기 화면: 설정 영역을 줄여 본문이 더 위에서 시작하게 */
+  .toolbar > .seg{width:auto;flex:1 1 320px}
+  .toolbar > #r-law{flex:1 1 100%}
+  .toolbar > span.mute.small:not(#r-prog){display:none}
+}
+/* 규정이 많아졌으므로 법령 선택은 옆으로 밀리는 칩 줄 */
+.seg.seg-scroll{overflow-x:auto;flex-wrap:nowrap;scrollbar-width:thin;padding-bottom:4px;-webkit-overflow-scrolling:touch}
+.seg.seg-scroll button{flex:0 0 auto;padding:6px 18px;white-space:nowrap}
+
+/* ═════ 나란히 보기 (≥1024px): 참조 패널이 열려도 본문을 덮지 않고 폭을 나눈다 ═════ */
+@media (min-width:1024px){
+  :root{--pkw:min(460px,42vw)}
+  body.pk-split{padding-right:var(--pkw)}
+  body.pk-split .pk-scrim{display:none}
+  body.pk-split .pk-ov{pointer-events:none}
+  body.pk-split .pk-pan{pointer-events:auto;width:var(--pkw);box-shadow:-6px 0 18px rgba(0,0,0,.12)}
+  body.pk-split #r-toc{display:none}
+  body.pk-split .rd-wrap{grid-template-columns:minmax(0,1fr)}
+  body.pk-split .cs-nav{display:flex}
+  body.pk-split #p-today.on{grid-template-columns:minmax(0,1fr)}
+  body.pk-split .fabs{right:calc(var(--pkw) + 12px)}
+}
+
+/* ═════ 참조 패널 도구줄: 아이콘만, 한 줄 ═════ */
+.pk-top{padding:6px 10px;gap:6px}
+.pk-ti{font-size:.98rem;line-height:1.3}
+.pk-tools{padding:6px 10px;gap:0}
+.pk-bar{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.pk-grp{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.pk-grp .pk-ib{border:0;border-radius:0;border-right:1px solid var(--line)}
+.pk-grp .pk-ib:last-child{border-right:0}
+.pk-sp{flex:1 1 4px}
+.pk-ib{display:inline-flex;align-items:center;justify-content:center;min-width:40px;min-height:40px;padding:0 8px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font:inherit;font-weight:800;font-size:1rem;cursor:pointer;white-space:nowrap}
+.pk-ib[aria-pressed="true"]{background:var(--red);border-color:var(--red);color:#fff}
+.pk-ib:disabled{opacity:.3;cursor:default}
+#pk-back,#pk-x{border-radius:99px;min-width:40px}
+.pk-body{padding:10px 14px 24px}
+
+/* 옛 '1주차·운2' 표시 안내 문구는 더 이상 쓰지 않는다 */
+.toolbar > span.mute.small:not(#r-prog){display:none}

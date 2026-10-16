@@ -1,0 +1,260 @@
+
+/* ═════════ 참조 패널(조문 팝업) · 공통 가리기 버튼 · 회독 목차 · 오늘 2단 ═════════ */
+
+/* 조문 조회는 한 곳으로 모아 둔다 (나중에 규정을 파일에서 불러오는 방식으로 바뀌어도 이 두 함수만 바꾸면 된다) */
+const artLookup = async (law, no) => { try { await loadLaw(law); } catch (e) { return null; } return D.articles.find(a => a.type === 'a' && a.law === law && a.no === no) || null; };
+const lawArticles = law => D.articles.filter(a => a.type === 'a' && a.law === law);
+
+/* 본문 속 '제N조'·'별표 제N호' 를 눌러서 열 수 있는 링크로 바꾼다 (회독 본문의 규칙과 동일) */
+function linkifyNodes(els, lawOf){
+  els.forEach(el => {
+    const defLaw = lawOf(el), w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT), nodes = [];
+    while (w.nextNode()){ const n = w.currentNode; if (!n.parentElement.closest('.b, .xr')) nodes.push(n); }
+    nodes.forEach(n => {
+      const t = n.nodeValue; XRE.lastIndex = 0; let m, last = 0, out = null;
+      while ((m = XRE.exec(t))){
+        const pre = t.slice(Math.max(0, m.index - 30), m.index), law = lawFromPre(pre, defLaw);
+        if (!law) continue;
+        let key, kind;
+        if (m[0].startsWith('별표')){ key = law + ':' + (m[1] || 1); kind = 'b'; if (!XB.has(key)) continue; }
+        else { key = law + ':' + m[2] + (m[3] ? '의' + m[3] : ''); kind = 'a'; if (!XA.has(key)) continue; }
+        if (!out) out = document.createDocumentFragment();
+        out.appendChild(document.createTextNode(t.slice(last, m.index)));
+        const sp = document.createElement('span'); sp.className = 'xr'; sp.dataset.x = kind + '|' + key; sp.title = '누르면 팝업으로 열기'; sp.textContent = m[0];
+        out.appendChild(sp); last = m.index + m[0].length;
+      }
+      if (out){ out.appendChild(document.createTextNode(t.slice(last))); n.parentNode.replaceChild(out, n); }
+    });
+  });
+}
+function byeolHtml(law, n){
+  if (law === '정관') return '<div class="chap">[별표] 분사무소 설치 현황 (제3조의2 관련)</div><div class="tw"><table><tr><th>명칭</th><th>소재지</th></tr>' + D.byeol.map(r => `<tr><td>${esc(r[0])}</td><td>${esc(r[1])}</td></tr>`).join('') + '</table></div>';
+  const parts = ((D.extra && D.extra[law]) || '').split(/(?=<div class="chap">\[별표)/);
+  return parts.find(p => new RegExp('^<div class="chap">\\[별표 제' + n + '호\\]').test(p)) || '';
+}
+
+/* ── 참조 패널 ── */
+const PK = {stack: [], keep: false, src: null, srcTop: 0};
+/* 폭이 넓은 화면(≥1024px)에서는 패널이 본문을 덮지 않고 오른쪽에 나란히 놓인다 */
+const PK_SPLIT_MQ = matchMedia('(min-width:1024px)');
+const pkSplit = () => PK_SPLIT_MQ.matches;
+const pkOpen = () => !!($('#pk') && !$('#pk').hidden);
+const pkBlocking = () => pkOpen() && !pkSplit();   /* 덮는 방식일 때만 아래 버튼을 숨긴다 */
+function applySplit(){ document.body.classList.toggle('pk-split', pkOpen() && pkSplit()); }
+function pkEnsure(){
+  if ($('#pk')) return;
+  const o = document.createElement('div'); o.id = 'pk'; o.className = 'pk-ov'; o.hidden = true;
+  o.innerHTML = `<div class="pk-scrim" id="pk-scrim"></div>
+  <aside class="pk-pan" role="dialog" aria-modal="true" aria-label="참조 조문">
+    <div class="pk-top"><button class="pk-ib" id="pk-back" title="뒤로" aria-label="뒤로">←</button><div class="pk-ti" id="pk-ti"></div><button class="pk-ib" id="pk-x" title="닫기 (Esc)" aria-label="닫기">✕</button></div>
+    <div class="pk-tools" id="pk-tools"></div>
+    <div class="pk-body" id="pk-body"></div>
+  </aside>`;
+  document.body.appendChild(o);
+  o.addEventListener('click', e => {
+    const t = e.target;
+    if (t.id === 'pk-scrim' || t.id === 'pk-x') return closePeek();
+    if (t.id === 'pk-back') return pkBack();
+    const m = t.closest('[data-pkmode]'); if (m) return setMode(m.dataset.pkmode);
+    if (t.closest('[data-pkamend]')) return setAmend(!S.showAmend);
+    const rd = t.closest('[data-pkread]'); if (rd){ const k = rd.dataset.pkread; S.reads[k] = (S.reads[k] || 0) + 1; save(); if ($('#p-read').dataset.init) drawRead(true); renderPeek(); return; }
+    const go = t.closest('[data-pkgo]'); if (go){ const k = go.dataset.pkgo; if (pkSplit()){ PK.keep = true; showTab('read'); PK.keep = false; } else { closePeek(); showTab('read'); } setTimeout(() => goRef('a|' + k), 80); return; }
+    const nb = t.closest('[data-pknb]'); if (nb){ PK.stack[PK.stack.length - 1] = 'a|' + nb.dataset.pknb; renderPeek(); }
+  });
+  /* 좌우로 쓸어서 이전·다음 조문 */
+  let sx = 0, sy = 0;
+  $('#pk-body').addEventListener('touchstart', e => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, {passive: true});
+  $('#pk-body').addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy;
+    if (Math.abs(dx) < 80 || Math.abs(dy) > 50) return;
+    const b = $(dx < 0 ? '[data-pknb][data-dir="next"]' : '[data-pknb][data-dir="prev"]', $('#pk')); if (b) b.click();
+  }, {passive: true});
+}
+function openPeek(x, fromPanel){
+  pkEnsure();
+  PK.stack = (pkOpen() && fromPanel) ? PK.stack.concat([x]) : [x];   /* 패널 안에서 누르면 쌓고, 본문에서 누르면 바꾼다 */
+  $('#pk').hidden = false; applySplit(); renderPeek(); updFab();
+}
+function closePeek(){
+  const o = $('#pk'); if (!o) return;
+  const wasSplit = document.body.classList.contains('pk-split');
+  o.hidden = true; PK.stack = []; applySplit(); updFab();
+  /* 나란히 보기를 닫으면 본문 폭이 돌아오므로, 누르고 있던 줄이 제자리에 오게 보정 */
+  if (wasSplit && PK.src && document.contains(PK.src)){ const d = PK.src.getBoundingClientRect().top - PK.srcTop; if (Math.abs(d) > 2) window.scrollBy(0, d); }
+  PK.src = null;
+}
+addEventListener('resize', () => { if (pkOpen()){ applySplit(); updFab(); } });
+function pkBack(){ if (PK.stack.length > 1){ PK.stack.pop(); renderPeek(); } else closePeek(); }
+async function renderPeek(){
+  const x = PK.stack[PK.stack.length - 1]; if (!x) return;
+  const [kind, key] = x.split('|'), [law, no] = key.split(':');
+  const box = $('#pk-body'), ti = $('#pk-ti'), tools = $('#pk-tools');
+  $('#pk-back').textContent = PK.stack.length > 1 ? `← ${PK.stack.length - 1}` : '←';
+  const ib = (attr, ico, tip, on, extra) => `<button class="pk-ib" ${attr} title="${tip}" aria-label="${tip}" ${on === undefined ? '' : `aria-pressed="${!!on}"`} ${extra || ''}>${ico}</button>`;
+  const modeSeg = `<span class="pk-grp">${[['0', '👁', '원문 그대로'], ['1', '①', '① 숫자·주체 가리기'], ['2', '②', '② 동사까지 가리기'], ['3', '③', '③ 조사만 남기고 가리기']].map(m => ib(`data-pkmode="${m[0]}"`, m[1], m[2], R.mode === m[0])).join('')}</span>`;
+  const amendBtn = ib('data-pkamend="1"', '📝', '개정·신설 표시 ' + (S.showAmend ? '끄기' : '켜기'), S.showAmend);
+  let root = document.createElement('div'); root.className = 'pk-art';
+  if (kind === 'b'){
+    try { await loadLaw(law); } catch (e) { /* 아래에서 '찾지 못했습니다' 표시 */ }
+    ti.innerHTML = `<span class="badge">${esc(law)}</span> <b>별표 제${esc(no)}호</b>`;
+    tools.innerHTML = '<div class="pk-bar">' + modeSeg + amendBtn + '</div>';
+    root.innerHTML = byeolHtml(law, no) || '<p class="mute">별표를 찾지 못했습니다.</p>';
+    linkifyNodes($$('.ln, td', root), () => law);
+  } else {
+    const a = await artLookup(law, no);
+    if (!a){ ti.textContent = key; tools.innerHTML = ''; root.innerHTML = '<p class="mute">조문을 찾지 못했습니다.</p>'; }
+    else {
+      const list = lawArticles(law), i = list.findIndex(z => z.no === a.no), prev = list[i - 1], next = list[i + 1], n = S.reads[artId(a)] || 0;
+      ti.innerHTML = `<span class="badge">${esc(law)}</span> <b>${esc(nl(a.no))}</b> <span class="mute">(${esc(a.title || '')})</span>`;
+      tools.innerHTML = '<div class="pk-bar">' + modeSeg + amendBtn + '<span class="pk-sp"></span>'
+        + ib(`data-pknb="${esc(prev ? artId(prev) : '')}" data-dir="prev"`, '◀', prev ? '이전 ' + nl(prev.no) : '이전 없음', undefined, prev ? '' : 'disabled')
+        + ib(`data-pknb="${esc(next ? artId(next) : '')}" data-dir="next"`, '▶', next ? '다음 ' + nl(next.no) : '다음 없음', undefined, next ? '' : 'disabled')
+        + ib(`data-pkread="${esc(artId(a))}"`, n ? '✓' + n : '＋1', '회독 +1 (지금 ' + n + '회독)', n > 0)
+        + ib(`data-pkgo="${esc(artId(a))}"`, '↗', '원문에서 보기') + '</div>';
+      root.innerHTML = a.html;
+      linkifyNodes($$('.ln, td', root), () => law);
+    }
+  }
+  if (R.mode === '3') clozeIn(root);
+  box.innerHTML = ''; box.appendChild(root); box.scrollTop = 0;
+}
+/* 참조 링크는 어느 화면에서 눌러도 현재 화면을 떠나지 않고 패널로 연다 */
+document.addEventListener('click', e => {
+  const x = e.target.closest('.xr'); if (!x) return;
+  e.preventDefault(); e.stopPropagation(); const sel = getSelection(); if (sel) sel.removeAllRanges();
+  const inPanel = !!x.closest('#pk');
+  const top0 = x.getBoundingClientRect().top;
+  openPeek(x.dataset.x, inPanel);
+  if (!inPanel){
+    PK.src = x; PK.srcTop = top0;
+    /* 나란히 보기로 본문 폭이 줄어도 누른 줄이 화면에서 움직이지 않게 보정 */
+    if (pkSplit()){ const d = x.getBoundingClientRect().top - top0; if (Math.abs(d) > 2) window.scrollBy(0, d); }
+  }
+}, true);
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('#pk') && !$('#pk').hidden) closePeek(); });
+/* 패널·개정 탭의 빈칸을 눌러서 확인 */
+document.addEventListener('click', e => { const b = e.target.closest('.b'); if (b && !b.closest('#r-body') && b.closest('#pk, #p-rev')) b.classList.toggle('rev'); });
+
+/* ── 가리기 모드는 한 곳에서 관리: 회독 본문·참조 패널·개정 탭에 같이 적용 ── */
+function setMode(v){
+  R.mode = String(v); saveRd(); document.body.dataset.rd = R.mode;
+  if ($('#p-read').dataset.init) drawRead(true);
+  if ($('#pk') && !$('#pk').hidden) renderPeek();
+  if ($('#p-rev').classList.contains('on')) renderers.rev();
+  updFab();
+}
+const MODE_SHORT = {'0':'원문', '1':'① 숫자·주체', '2':'② 동사까지', '3':'③ 조사만'};
+function updFab(){
+  let f = $('#fab-mode');
+  if (!f){
+    f = document.createElement('button'); f.id = 'fab-mode'; f.className = 'fab-mode'; f.hidden = true; document.body.appendChild(f);
+    f.onclick = () => setMode((+R.mode + 1) % 4);
+  }
+  const on = $('#p-read').classList.contains('on') || $('#p-rev').classList.contains('on');
+  f.hidden = !on || pkBlocking();
+  f.innerHTML = `<span class="ft-full">👁 ${MODE_SHORT[R.mode]}</span><span class="ft-short">👁${R.mode === '0' ? '' : ' ' + R.mode}</span>`;
+  f.setAttribute('aria-label', '가리기 모드 바꾸기 (지금: ' + MODE_SHORT[R.mode] + ')'); f.title = '가리기: ' + MODE_SHORT[R.mode] + ' (누르면 다음 단계)';
+  let g = $('#fab-amend');
+  if (!g){
+    g = document.createElement('button'); g.id = 'fab-amend'; g.className = 'fab-mode fab-amend'; g.hidden = true; document.body.appendChild(g);
+    g.onclick = () => setAmend(!S.showAmend);
+  }
+  g.hidden = !$('#p-read').classList.contains('on') || pkBlocking();
+  g.innerHTML = `<span class="ft-full">📝 개정표시 ${S.showAmend ? 'ON' : 'OFF'}</span><span class="ft-short">📝${S.showAmend ? ' ✓' : ''}</span>`; g.setAttribute('aria-pressed', !!S.showAmend); g.setAttribute('aria-label', '개정·신설 표시 ' + (S.showAmend ? '끄기' : '켜기')); g.title = '개정·신설 표시 ' + (S.showAmend ? '끄기' : '켜기');
+  applyAmend();
+}
+/* 개정·신설 표시(<개정 …>)는 기본으로 숨기고, 버튼으로 켠다. 개정 탭에서는 항상 보인다 */
+function applyAmend(){ document.body.classList.toggle('show-amend', !!S.showAmend); }
+function setAmend(v){ S.showAmend = !!v; save(); updFab(); if ($('#pk') && !$('#pk').hidden) renderPeek(); }
+/* 검색 결과 미리보기에서도 개정 표시는 뺀다 */
+const stripAmend = h => String(h).replace(/<span class="amend">[\s\S]*?<\/span>/g, '');
+findIndex = function(){
+  if (F.idx) return F.idx;
+  F.idx = [].concat(
+    D.articles.filter(a => a.type === 'a').map(a => ({k:'law', sc:a.law, a, t:nl(a.no) + '(' + a.title + ')', h:a.title, x:plain(stripAmend(a.html))})),
+    (D.exam || []).map(e => ({k:'exam', sc:'exam', e, t:exLabel(e), h:'', x:e.q + '\n정답 ' + e.a + '\n' + plain(e.ex || '')})),
+    D.cards.map(c => ({k:'card', sc:'card', c, t:c.q, h:c.q, x:c.a + ' ' + (c.src || '') + ' ' + (c.alt || []).join(' ')}))
+  );
+  return F.idx;
+};
+const _showTab = showTab;
+showTab = function(id){ if (pkOpen() && !PK.keep) closePeek(); _showTab(id); try { updFab(); } catch(e){} };
+
+/* 개정 탭: 빈칸·참조 링크도 같은 규칙으로 */
+plainBlanks = h => h;
+const _rRev = renderers.rev;
+renderers.rev = function(){
+  if (needAllLaws()){
+    $('#p-rev').innerHTML = '<div class="note">⏳ 모든 규정을 불러오는 중…</div>';
+    loadAllLaws().then(() => renderers.rev());
+    return;
+  }
+  _rRev();
+  { const w = lawsMissingNote(); if (w) $('#p-rev').insertAdjacentHTML('afterbegin', w); }
+  const p = $('#p-rev');
+  linkifyNodes($$('.rv-item .ln', p), el => { const l = el.closest('.rv-item').querySelector('.law'); return l ? l.textContent : '조직법'; });
+  if (R.mode === '3') clozeIn(p);
+};
+
+/* ── 회독 목차 사이드바 (가로 화면) ── */
+function syncToc(){
+  const body = $('#r-body'); if (!body) return;
+  let wrap = $('.rd-wrap');
+  if (!wrap){
+    wrap = document.createElement('div'); wrap.className = 'rd-wrap';
+    const aside = document.createElement('aside'); aside.id = 'r-toc'; aside.setAttribute('aria-label', '목차');
+    const main = document.createElement('div'); main.className = 'rd-main';
+    body.parentNode.insertBefore(wrap, $('#r-crumb'));
+    main.appendChild($('#r-crumb')); main.appendChild(body); wrap.append(aside, main);
+    aside.addEventListener('click', e => { const b = e.target.closest('[data-tj]'); if (!b) return; const j = $('#r-jump'); j.value = b.dataset.tj; j.dispatchEvent(new Event('change')); });
+  }
+  const jump = $('#r-jump'); let h = '';
+  const item = o => { const id = o.value.slice(2), read = S.reads[id] > 0; return `<button class="toc-a" data-tj="${esc(o.value)}" data-id="${esc(id)}"><span class="ck">${read ? '✓' : ''}</span><span>${esc(o.textContent.trim())}</span></button>`; };
+  [...jump.children].forEach(c => {
+    if (c.tagName === 'OPTION' && c.value.startsWith('a-')) h += item(c);
+    if (c.tagName === 'OPTGROUP'){
+      const first = c.querySelector('option');
+      h += `<button class="toc-ch" data-tj="${esc(first ? first.value : '')}">${esc(c.label)}</button>` + [...c.querySelectorAll('option')].filter(o => o.value.startsWith('a-')).map(item).join('');
+    }
+  });
+  $('#r-toc').innerHTML = h || '<p class="small mute" style="padding:8px">목차가 없습니다.</p>';
+  tocSpy();
+}
+let tocRaf = 0;
+function tocSpy(){
+  tocRaf = 0; const aside = $('#r-toc'); if (!aside || !aside.offsetParent) return;
+  const top = (parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 100) + 40;
+  let cur = null; for (const a of $$('#r-body .art')){ if (a.getBoundingClientRect().top > top) break; cur = a; }
+  $$('#r-toc .toc-a.on').forEach(b => b.classList.remove('on'));
+  if (!cur) return;
+  const b = $('#r-toc [data-id="' + cur.id.slice(2).replace(/"/g, '\\"') + '"]'); if (!b) return;
+  b.classList.add('on');
+  const bt = b.offsetTop, bh = b.offsetHeight; if (bt < aside.scrollTop + 8) aside.scrollTop = bt - 40; else if (bt + bh > aside.scrollTop + aside.clientHeight - 8) aside.scrollTop = bt + bh - aside.clientHeight + 40;
+}
+addEventListener('scroll', () => { if (!tocRaf && $('#p-read').classList.contains('on')) tocRaf = requestAnimationFrame(tocSpy); }, {passive: true});
+const _syncChips = syncChips;
+syncChips = function(){ _syncChips(); try { syncToc(); } catch(e){ console.warn(e); } };
+
+/* ── 오늘 탭: 가로 화면에서 2단 (왼쪽: 일정·추천·밀린 일 / 오른쪽: 오늘 할 일) ── */
+function todayCols(){
+  const p = $('#p-today'); if (p.querySelector(':scope > .td-l')) return;
+  const kids = [...p.children], l = document.createElement('div'), r = document.createElement('div');
+  l.className = 'td-l'; r.className = 'td-r';
+  kids.forEach(k => (k.matches('.sch, .rec-card, .late-card, .past-card') ? l : r).appendChild(k));
+  p.append(l, r);
+}
+const _todayEnh2 = todayEnhance;
+todayEnhance = function(){ _todayEnh2(); try { todayCols(); } catch(e){ console.warn(e); } };
+
+/* 회독 본문의 참조 링크도 같은 규칙으로 만든다 (다른 규정으로의 링크 포함) */
+linkRefs = function(){
+  $$('#r-body .chap').forEach(c => { const m = c.textContent.match(/^\[별표(?:\s*제(\d+)호)?\]/); if (m) c.id = 'byeol-' + R.law + '-' + (m[1] || 1); });
+  linkifyNodes($$('#r-body .ln, #r-body td'), () => R.law);
+};
+/* 아직 불러오지 않은 규정으로 이동할 때는 불러온 뒤에 이동 */
+const _goRef = goRef;
+goRef = async function(x){
+  const law = x.split('|')[1].split(':')[0];
+  try { await loadLaw(law); } catch (e) { toast('규정을 불러오지 못했습니다.'); return; }
+  _goRef(x);
+};

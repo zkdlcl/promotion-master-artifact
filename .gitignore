@@ -1,0 +1,7 @@
+node_modules/
+*.log
+# 빌드 중간 산출물 (최종본은 dist/orgmaster.html 에 보관)
+/orgmaster.html
+/orgmaster.wrapped.html
+/check.js
+/site/index.html

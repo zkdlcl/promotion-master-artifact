@@ -44,9 +44,11 @@ def check(recs, A, E):
                     if len(norm(frag)) >= 2 and norm(frag) not in body:
                         e(f"{p.get('k')}: 원문에 없는 인용 「{frag.strip()[:40]}」 ({art})")
             t = p.get('trap')
-            if t:
-                if not quote or norm(t.get('orig', '')) not in norm(quote): e(f"{p.get('k')}: 함정 원문 낱말이 인용에 없음 {t.get('orig')}")
-                if not t.get('alt') or norm(t['alt']) not in qn: e(f"{p.get('k')}: 함정 바뀐 낱말이 문제에 없음 {t.get('alt')}")
+            if t:   # 바꿈(orig·alt) · 끼워 넣음(orig 빈칸) · 빠뜨림(alt 빈칸)
+                o, al = t.get('orig', ''), t.get('alt', '')
+                if not o and not al: e(f"{p.get('k')}: 함정이 비어 있음")
+                if o and (not quote or norm(o) not in norm(quote)): e(f"{p.get('k')}: 함정 원문 낱말이 인용에 없음 {o}")
+                if al and norm(al) not in qn: e(f"{p.get('k')}: 함정 바뀐 낱말이 문제에 없음 {al}")
         if r.get('status') == '확인됨' and any(p.get('ok') is not None and not p.get('quote') for p in r.get('points', [])):
             e('확인됨인데 인용 없는 보기')
     return errs
@@ -79,6 +81,12 @@ def build(recs, A, E):
     return kb
 
 
+def trap_text(t):
+    if not t['orig']: return f"(끼워 넣음) {t['alt']}"
+    if not t['alt']: return f"(빠뜨림) {t['orig']}"
+    return f"{t['orig']} → {t['alt']}"
+
+
 def md(kb, A, total):
     L = ['# 기출 출제 기준 (자동 생성 — kb/check_kb.py)', '',
          '카드를 만들거나 문제를 내기 전에 이 문서와 `exam_kb.json` 을 먼저 읽는다. 근거는 언제나 규정 원문이다.', '']
@@ -93,7 +101,7 @@ def md(kb, A, total):
               '| 조문 | 출제 | 연도 | 함정(원문 → 바꾼 말) |', '|---|---|---|---|']
         rows = sorted(((k, v) for k, v in kb['arts'].items() if k.startswith(law + ':')), key=lambda t: (-t[1]['n'], t[0]))
         for k, v in rows:
-            tr = ' · '.join(dict.fromkeys(f"{t['orig']} → {t['alt']}" for t in v['traps']))
+            tr = ' · '.join(dict.fromkeys(trap_text(t) for t in v['traps']))
             L.append(f"| {k.split(':', 1)[1]} {A[k]['title']} | {v['n']} | {', '.join(map(str, v['years']))} | {tr} |")
         L.append('')
     open(os.path.join(KB, '기출기준.md'), 'w', encoding='utf8', newline='\n').write('\n'.join(L))

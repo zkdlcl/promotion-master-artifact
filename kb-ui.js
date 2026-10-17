@@ -11,7 +11,10 @@ const KB_ST = {'확인됨': '', '일부확인': '일부 확인', '확인필요':
 function kbExamBox(id){
   const r = KB.items[id]; if (!r) return '';
   const arts = (r.a || []).map(k => `<button class="kbchip" data-kbart="${esc(k)}">${esc(kbArtLabel(k))}</button>`).join('');
-  const traps = (r.t || []).map(t => `<li><span class="kbo">${esc(t[0])}</span><span class="kbarrow">→</span><span class="kbalt">${esc(t[1])}</span><span class="mute small"> ${esc(t[2] || '')}</span></li>`).join('');
+  const trapHtml = t => !t[0] ? `<span class="kbtag">끼워 넣음</span> <span class="kbalt">${esc(t[1])}</span>`
+    : !t[1] ? `<span class="kbtag">빠뜨림</span> <span class="kbo">${esc(t[0])}</span>`
+    : `<span class="kbo">${esc(t[0])}</span><span class="kbarrow">→</span><span class="kbalt">${esc(t[1])}</span>`;
+  const traps = (r.t || []).map(t => `<li>${trapHtml(t)}<span class="mute small"> ${esc(t[2] || '')}</span></li>`).join('');
   return `<div class="kbx">
     <div class="kbx-h"><span class="kbx-t">기출 근거</span><span class="kbtag">${esc(r.f)}</span><span class="kbtag">난이도 ${r.lv}</span>${r.c ? '<span class="kbtag">사례</span>' : ''}${KB_ST[r.st] ? `<span class="kbtag warn">${esc(KB_ST[r.st])}</span>` : ''}</div>
     ${arts ? `<div class="kbx-row"><span class="kbx-l">근거 조문</span><div class="kbchips">${arts}</div></div>` : ''}

@@ -58,11 +58,16 @@ rep('<section class="pane" id="p-read"></section>', '<section class="pane" id="p
 rep("['read','📖 회독'],", "['read','📖 회독'],['bt','🕳 뻥뚫'],")
 rep("['cho','🔤 자음퀴즈'],", "")
 
-css = ''.join(rd(n) for n in ['rev-tab.css', 'ux-polish.css', 'ux2.css', 'ux4.css'])
+css = ''.join(rd(n) for n in ['rev-tab.css', 'ux-polish.css', 'ux2.css', 'ux4.css', 'ui7.css'])
 k = body.index('</style>')
 body = body[:k] + css + '\n' + body[k:]
-js = ''.join(rd(n) for n in ['lawdata.js', 'rev-tab.js', 'ux-polish.js', 'ux2.js', 'ux3.js', 'ux4.js', 'ux5.js', 'ux6.js'])
+js = ''.join(rd(n) for n in ['lawdata.js', 'rev-tab.js', 'ux-polish.js', 'ux2.js', 'ux3.js', 'ux4.js', 'ux5.js', 'ux6.js', 'ui7.js'])
 rep('/* 시작 */', js + '\n/* 시작 */')
+# ui7 디자인 층: 첫 화면을 그린 뒤 시작 (아이콘·칩·테마 전환)
+rep("|| 'today');\n</script>", "|| 'today');\nUI7.start();\n</script>")
+# 글꼴: Pretendard 가 있으면 그것, 없으면 같은 계열의 Noto Sans KR. 숫자는 JetBrains Mono
+rep('<title>승진고시 마스터</title>', '<title>승진고시 마스터</title>\n<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
+    '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Noto+Sans+KR:wght@400..800&display=swap">')
 
 open(P('orgmaster.html'), 'w', encoding='utf8', newline='\n').write(body)
 print('body chars', len(body), 'bytes', len(body.encode('utf8')))

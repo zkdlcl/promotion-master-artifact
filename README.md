@@ -9,8 +9,9 @@ claude.ai 아티팩트 **승진고시 마스터**(https://claude.ai/artifact/XmA
 | `base/orgmaster.base.html` | 출발점이 된 기존 페이지(게시 버전 16). 빌드는 이 위에 아래 조각들을 덧붙입니다. |
 | `lawdata.js` `rev-tab.js` `ux-polish.js` `ux2.js` … `ux6.js` | 덧붙이는 기능 조각 (규정 불러오기, 개정 탭, 칩/패널/검색 화면, 뻥뚫, 일정, 문제 연동, 복습 카드). 뒤 파일이 앞 파일의 함수를 덮어쓰는 순서이므로 `build_artifact.py` 의 `js` 목록 순서가 중요합니다. |
 | `*.css` | 위 조각에 딸린 스타일 |
+| `ui7.css` `ui7.js` | **디자인 층**(맨 마지막). shadcn/ui zinc 무채색 + Radix red 색 체계(라이트·다크 짝), 이모지 → 선 아이콘, 드롭다운 → 칩(원래 select 는 숨긴 채 값만 바꿈), 원형으로 퍼지는 테마 전환. 기능 함수는 덮어쓰지 않고 그려진 화면만 바꿉니다. 글꼴은 Pretendard(설치 시) → Noto Sans KR, 숫자는 JetBrains Mono. |
 | `build_artifact.py` | 기준 페이지 + 조각 → `orgmaster.html`(게시용 본문) 과 테스트용 `site/index.html` |
-| `dist/orgmaster.html` | **게시한 최종 페이지** (버전 25 시점). 빌드 없이도 이 파일로 복구할 수 있습니다. |
+| `dist/orgmaster.html` | **게시한 최종 페이지** (버전 26 시점). 빌드 없이도 이 파일로 복구할 수 있습니다. |
 | `site/data/laws/*.json` | 규정 8종 본문 (처음 열 때 불러옴) — `convert_regs.py` 로 생성 |
 | `site/data/quiz/*.json` | 기출 12 + 스터디 문제 98 묶음 — `quiz/convert_quiz.py` 로 생성 후 후처리(아래) |
 | `site/*.json` | 규정 목차, 문제 목차, 기록 이전표, 새 복습 카드 |
@@ -46,7 +47,7 @@ python -X utf8 make_cards.py --progress progress.json
 ## 테스트
 ```
 cd site && python -m http.server 8765          # 다른 터미널에서
-cd tests && npm install && node card-test.mjs  # quiz-test, law-test, split-test, ux4-test … 도 같은 방식
+cd tests && npm install && node card-test.mjs  # quiz-test, law-test, split-test, ux4-test, ui7-test … 도 같은 방식
 ```
 Chrome 경로는 `C:/Program Files/Google/Chrome/Application/chrome.exe` 로 되어 있습니다.
 `rev-test`의 favicon 404, `ux-test`의 "장 칩 생성"은 알려진 무해한 항목(테스트 가정)입니다.

@@ -13,7 +13,8 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 await page.goto(FILE, { waitUntil: "load" });
 await sleep(800);
 const tabs = await page.$$eval(".tab", (els) => els.map((e) => e.textContent.trim()));
-ok("탭 목록에 개정 포함", tabs.includes("🆕 개정"), JSON.stringify(tabs));
+// 탭 이모지는 ui7 에서 선 아이콘(svg)으로 바뀌므로 글자만 본다
+ok("탭 목록에 개정 포함", tabs.includes("개정"), JSON.stringify(tabs));
 ok("기존 탭 9개 유지", tabs.length === 10);
 
 // 개정 탭 열기

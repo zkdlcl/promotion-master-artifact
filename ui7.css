@@ -267,3 +267,5 @@ th,td{border-color:var(--line)}
 .kbarrow{color:var(--mute);margin:0 6px}
 .kbnote{margin:0;font-size:.86rem;color:var(--mute)}
 .kbb{font-size:.7rem;font-weight:700;padding:2px 8px;border-radius:6px;background:var(--ink);color:var(--on-ink);font-family:var(--f-mono);letter-spacing:-.02em;white-space:nowrap}
+.xex.kbbad{border-style:dashed;color:var(--mute)}
+.xex.kbbad .kbtag{display:inline-block;margin-bottom:4px}

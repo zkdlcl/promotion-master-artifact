@@ -27,7 +27,13 @@ if (typeof drawX === 'function'){
   drawX = function(){
     _drawX.apply(this, arguments);
     const e = X.queue && X.queue[X.i], ex = $('#p-exam .xex');
-    if (e && ex && KB.items[e.id]) ex.insertAdjacentHTML('afterend', kbExamBox(e.id));
+    if (e && ex && KB.items[e.id]){
+      ex.insertAdjacentHTML('afterend', kbExamBox(e.id));
+      if (/자료 해설 오류/.test(KB.items[e.id].n || '')){   // 원문과 다른 자료 해설은 표시만 남기고 경고
+        ex.classList.add('kbbad');
+        ex.insertAdjacentHTML('afterbegin', '<span class="kbtag warn">이 해설은 원문과 다름 · 아래 기출 근거를 보세요</span><br>');
+      }
+    }
   };
 }
 document.addEventListener('click', ev => {

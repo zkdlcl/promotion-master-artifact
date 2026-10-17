@@ -27,6 +27,13 @@ D['lawIndex'] = json.load(open(P(os.path.join('site', 'lawindex.json')), encodin
 D['quizIndex'] = json.load(open(P(os.path.join('site', 'quizindex.json')), encoding='utf8'))
 # 원문 복원본 2024·2025 기출은 선배 앱 기출(past-07·past-08)과 같은 시험이라 빼고, 기록은 번호 대응표로 옮긴다
 D['exam'] = [e for e in D['exam'] if e['grp'] not in ('2024', '2025')]
+# 스터디 문제: 공식 답지 기준 정답·해설로 덮어쓰고, 답지로 새로 넣은 문항 추가 (kb/study/답지.json)
+sys.path.insert(0, P(os.path.join('kb', 'study')))
+import check_study
+_serr = check_study.check()
+if _serr:
+    print('\n'.join('✗ ' + x for x in _serr)); sys.exit(f'빌드 멈춤: 스터디 답지 DB 오류 {len(_serr)}건 (kb/study/check_study.py)')
+D['stFix'] = check_study.apply(D['exam'])
 D['exMap'] = json.load(open(P(os.path.join('site', 'exmap.json')), encoding='utf8'))
 # 새 규정 복습 카드 (스터디 1회독 차수 단위)
 cn = json.load(open(P(os.path.join('site', 'cards_new.json')), encoding='utf8'))
@@ -66,6 +73,17 @@ rep("const exLabel = e =>", "let exLabel = e =>")
 rep("const exAnswers = e => (e.a.match(/[①②③④⑤]/g) || []);", "const exAnswers = e => (e.a.match(/[①②③④⑤⑥]/g) || []);")
 rep("bad = X.res.filter(r => !r.ok).map(r => D.exam.find(e => e.id === r.id));", "bad = X.res.filter(r => !r.ok).map(r => exById(r.id));")
 rep("X.queue = X.res.filter(r => !r.ok).map(r => D.exam.find(q => q.id === r.id));", "X.queue = X.res.filter(r => !r.ok).map(r => exById(r.id));")
+
+# 동기화 보호: 서버 기록을 받기 전에 시작 코드(기록 이관 등)가 save() 를 부르면 upd 가 서버보다 새것이 되어
+# 기록 없는 브라우저의 빈 기록이 서버를 덮었다(2026-10-17 사고). 첫 동기화 전에는 기기에만 저장하고 upd 는 그대로 둔다.
+rep("let DBR = null, syncTimer = null, pushing = false, dirty = false;",
+    "let DBR = null, syncTimer = null, pushing = false, dirty = false, SYNC_WAIT = !!(window.claude && window.claude.use);")
+rep("function save(){\n  S.upd = Date.now();",
+    "function save(){\n  if (SYNC_WAIT){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){} return; }\n  S.upd = Date.now();")
+rep("const db = await window.claude.use('db'); if (!db) return;", "const db = await window.claude.use('db'); if (!db){ SYNC_WAIT = false; return; }")
+rep("setSync('☁ 동기화됨'); applySeeds();", "SYNC_WAIT = false; setSync('☁ 동기화됨'); applySeeds();")
+# 서버를 못 읽었으면 이번에는 기기에만 저장한다(upd 를 올리면 다음에 이 기기의 기록이 서버를 덮을 수 있다)
+rep("} catch(e){ setSync(''); applySeeds(); }", "} catch(e){ DBR = null; setSync('☁ 서버 연결 안 됨 · 기기에만 저장'); applySeeds(); }")
 
 # 4) 새 탭 영역, 탭 목록, CSS, JS 를 덧붙인다 (기존 코드는 가급적 수정하지 않음)
 rep('<section class="pane" id="p-exam"></section>', '<section class="pane" id="p-exam"></section>\n<section class="pane" id="p-rev"></section>')

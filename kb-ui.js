@@ -52,3 +52,23 @@ function kbBadges(root){
   });
 }
 new MutationObserver(ms => ms.forEach(m => m.addedNodes.forEach(n => n.nodeType === 1 && kbBadges(n)))).observe(document.body, {childList: true, subtree: true});
+
+/* ═════ 스터디 답지 반영 (kb/study/답지.json → D.stFix) ═════
+   2주차 내 답은 처음에 Claude 가채점 기준으로 오답노트에 seed 됐다. 답지로 맞음/틀림이 바뀐 문항만 한 번 바로잡는다.
+   seed 그대로(n=1, 가채점 기준 결과)인 기록만 고치고, 그 뒤 다시 푼 기록은 건드리지 않는다. */
+const ST_FIX = D.stFix || {};
+function stFixSeeds(){
+  try {
+    if (!S.seeds || !S.seeds.st2 || S.seeds.st2fix) return;
+    Object.entries(ST_FIX).forEach(([id, [was, now]]) => {
+      const r = S.ex && S.ex[id];
+      if (r && r.n === 1 && r.last === was) { r.last = now; r.w = now ? 0 : 1; }
+    });
+    S.seeds.st2fix = 1; save();
+  } catch(e){}
+}
+/* 서버 기록을 받은 뒤(initSync 가 applySeeds 를 부를 때)에만 고친다 — 먼저 저장하면 이 기기의 낡은 기록이 서버를 덮을 수 있다.
+   서버 없이 열 때는 initSync 가 원래 applySeeds 를 이미 setTimeout 에 걸어 두었으므로 그 뒤에 따로 부른다. */
+const _applySeeds = applySeeds;
+applySeeds = function(){ _applySeeds(); stFixSeeds(); };
+if (!(window.claude && window.claude.use)) setTimeout(stFixSeeds, 0);

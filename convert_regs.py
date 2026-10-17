@@ -40,6 +40,25 @@ def esc(s):
     return H.escape(s, quote=False)
 
 
+# 선배 앱 원본은 괄호 ( ) 대신 ~ ~ 로 적어 두었다 (예: "입후보 등록 ~예비후보자 등록 포함~ 을").
+# 범위 표시(1~3)는 원본에 없음을 확인했으므로, 한 줄 안의 ~짝~ 은 모두 괄호로 되돌린다.
+# 괄호 뒤가 조사·어미면 띄어쓰기를 붙인다: "등록 ~…~ 을 할" → "등록(…)을 할"
+TILDE = re.compile(r'\s*~([^~\n]+?)~(\s*)')
+JOSA = re.compile(r'[을를이가은는의에와과로으도만하되,.]')   # 괄호 바로 뒤에 붙는 조사·어미·문장부호
+
+
+RANGE = re.compile(r'(?<=[\d급년호월일세상만])~(?=\s*\d)')   # 범위(3~4급, 1급~4급, 5년이상~10년미만)는 그대로 둔다
+KEEP = ''
+
+
+def paren(s):
+    s = RANGE.sub(KEEP, s)
+    def one(m):
+        tail = '' if JOSA.match(s, m.end()) else m.group(2)
+        return f'({m.group(1).strip()})' + tail
+    return TILDE.sub(one, s).replace(KEEP, '~')
+
+
 def blanks(text):
     out, pos = [], 0
     for m in RX.finditer(text):
@@ -94,7 +113,7 @@ def classify(line):
 def text_html(text):
     rows = []
     for raw in re.split(r'\r?\n|\n\r?', text):
-        line = raw.strip()
+        line = paren(raw.strip())
         if not line:
             continue
         rows.append(f'<div class="{classify(line)}">{inline(line)}</div>')
@@ -117,7 +136,7 @@ def table_html(t):
     t = parse_table(t)
     if not t:
         return ''
-    cell = lambda c: esc(str(c if c is not None else '')).replace('\n', '<br>')
+    cell = lambda c: esc(paren(str(c if c is not None else ''))).replace('\n', '<br>')
     h = ''
     if t.get('headers'):
         h += '<tr>' + ''.join(f'<th>{cell(c)}</th>' for c in t['headers']) + '</tr>'

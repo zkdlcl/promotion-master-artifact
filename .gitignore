@@ -1,5 +1,9 @@
 node_modules/
 *.log
+__pycache__/
+# 테스트가 만드는 화면 캡처·잠금 파일
+/tests/*.png
+/tests/package-lock.json
 # 빌드 중간 산출물 (최종본은 dist/orgmaster.html 에 보관)
 /orgmaster.html
 /orgmaster.wrapped.html

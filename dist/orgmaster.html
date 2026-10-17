@@ -412,8 +412,9 @@ header{background:color-mix(in srgb,var(--card) 82%,transparent);-webkit-backdro
   border-bottom:1px solid var(--line)}
 .hd{padding-top:10px;gap:10px;align-items:center}
 .hd h1{color:var(--ink);font-weight:800;font-size:1.02rem;letter-spacing:-.03em;display:flex;align-items:center;gap:8px}
-.brand{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:8px;background:var(--red);color:#fff;flex:none;box-shadow:inset 0 -1px 0 rgba(0,0,0,.15)}
-.brand svg{width:15px;height:15px;stroke:#fff;stroke-width:3.2;fill:none;stroke-linecap:round}
+.brand{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:8px;background:#fff;flex:none;
+  box-shadow:0 0 0 1px var(--line),0 1px 2px rgba(0,0,0,.08)}
+.brand svg{width:20px;height:20px;fill:#da291c;stroke:none}
 .dday{font-weight:700;font-size:.78rem;letter-spacing:-.01em;color:var(--ink);background:var(--soft);border:1px solid var(--line);
   padding:3px 10px;border-radius:999px;overflow:hidden;text-overflow:ellipsis;max-width:46vw}
 #sync{font-family:var(--f-mono);letter-spacing:0}
@@ -3095,7 +3096,8 @@ const UI7 = (() => {
   function brand(){
     const h = document.querySelector('.hd h1'); if (!h || h.dataset.ui7) return;
     h.dataset.ui7 = '1';
-    h.innerHTML = '<span class="brand" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span><span class="ht">승진고시 마스터</span>';
+    // 적십자 표장: 흰 바탕에 같은 크기 정사각형 5개로 된 빨간 십자 (Pantone 485)
+    h.innerHTML = '<span class="brand" aria-hidden="true"><svg viewBox="0 0 30 30"><path d="M11 3h8v8h8v8h-8v8h-8v-8H3v-8h8z"/></svg></span><span class="ht">승진고시 마스터</span>';
   }
 
   /* ── 화면이 바뀔 때마다 ── */

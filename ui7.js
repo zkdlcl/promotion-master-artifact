@@ -134,7 +134,8 @@ const UI7 = (() => {
   function brand(){
     const h = document.querySelector('.hd h1'); if (!h || h.dataset.ui7) return;
     h.dataset.ui7 = '1';
-    h.innerHTML = '<span class="brand" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span><span class="ht">승진고시 마스터</span>';
+    // 적십자 표장: 흰 바탕에 같은 크기 정사각형 5개로 된 빨간 십자 (Pantone 485)
+    h.innerHTML = '<span class="brand" aria-hidden="true"><svg viewBox="0 0 30 30"><path d="M11 3h8v8h8v8h-8v8h-8v-8H3v-8h8z"/></svg></span><span class="ht">승진고시 마스터</span>';
   }
 
   /* ── 화면이 바뀔 때마다 ── */

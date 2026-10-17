@@ -249,3 +249,21 @@ th,td{border-color:var(--line)}
   .csel.wide{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px;scrollbar-width:thin;-webkit-overflow-scrolling:touch}
   .csel.wide button{white-space:nowrap;flex:none}
 }
+
+/* ── 기출 근거 (kb-ui.js) ── */
+.kbx{margin-top:12px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--card);padding:12px 14px;display:grid;gap:10px}
+.kbx-h{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.kbx-t{font-weight:800;font-size:.86rem;margin-right:4px}
+.kbtag{font-size:.72rem;font-weight:650;padding:2px 8px;border-radius:6px;background:var(--soft);color:var(--mute)}
+.kbtag.warn{background:var(--warn-bg);color:var(--warn)}
+.kbx-row{display:grid;grid-template-columns:5.2em minmax(0,1fr);gap:8px;align-items:start}
+.kbx-l{font-size:.72rem;font-weight:700;letter-spacing:.04em;color:var(--mute);padding-top:6px}
+.kbchips{display:flex;flex-wrap:wrap;gap:6px}
+.kbchip{font:inherit;font-size:.84rem;font-weight:650;min-height:34px;padding:4px 12px;border-radius:999px;border:1px solid var(--red-line);background:var(--red-bg);color:var(--red-d);cursor:pointer}
+.kbchip:hover{background:color-mix(in srgb,var(--red-bg) 70%,var(--red-line))}
+.kbtraps{list-style:none;margin:0;padding:0;display:grid;gap:4px;font-size:.92rem}
+.kbo{font-weight:700;color:var(--ok);background:var(--ok-bg);border-radius:4px;padding:0 4px}
+.kbalt{font-weight:700;color:var(--red-d);background:var(--red-bg);border-radius:4px;padding:0 4px;text-decoration:line-through;text-decoration-thickness:1px}
+.kbarrow{color:var(--mute);margin:0 6px}
+.kbnote{margin:0;font-size:.86rem;color:var(--mute)}
+.kbb{font-size:.7rem;font-weight:700;padding:2px 8px;border-radius:6px;background:var(--ink);color:var(--on-ink);font-family:var(--f-mono);letter-spacing:-.02em;white-space:nowrap}

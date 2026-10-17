@@ -33,6 +33,22 @@ cn = json.load(open(P(os.path.join('site', 'cards_new.json')), encoding='utf8'))
 D['cards'] = D['cards'] + cn['cards']
 D['topics'].update(cn['topics'])
 D['cardUnits'] = cn['units']
+# 기출 근거 DB: 검사를 통과해야 빌드한다. 앱에는 필요한 부분만 줄여 넣는다
+sys.path.insert(0, P('kb'))
+import check_kb
+_A, _E = check_kb.articles(), {x['id']: x for x in check_kb.exam_items()}
+_recs = check_kb.load()
+_errs = check_kb.check(_recs, _A, _E)
+if _errs:
+    print('\n'.join('✗ ' + x for x in _errs)); sys.exit(f'빌드 멈춤: 기출 근거 DB 오류 {len(_errs)}건 (kb/check_kb.py)')
+_kb = check_kb.build(_recs, _A, _E)
+D['kb'] = {
+    'items': {i: {'f': r['form'], 'lv': r['level'], 'c': bool(r.get('case')), 'st': r['status'], 'a': r.get('arts', []),
+                  't': [[p['trap']['orig'], p['trap']['alt'], p.get('why', '')] for p in r.get('points', []) if p.get('trap')],
+                  'n': r.get('note', '')} for i, r in _kb['items'].items()},
+    'arts': {k: {'n': v['n'], 'y': v['years']} for k, v in _kb['arts'].items()},
+}
+print('기출 근거 DB:', len(_kb['items']), '문항,', len(_kb['arts']), '조문')
 newdata = json.dumps(D, ensure_ascii=False, separators=(',', ':')).replace('</', '<\\/')
 body = body[:m.start(2)] + newdata + body[m.end(2):]
 
@@ -61,7 +77,7 @@ rep("['cho','🔤 자음퀴즈'],", "")
 css = ''.join(rd(n) for n in ['rev-tab.css', 'ux-polish.css', 'ux2.css', 'ux4.css', 'ui7.css'])
 k = body.index('</style>')
 body = body[:k] + css + '\n' + body[k:]
-js = ''.join(rd(n) for n in ['lawdata.js', 'rev-tab.js', 'ux-polish.js', 'ux2.js', 'ux3.js', 'ux4.js', 'ux5.js', 'ux6.js', 'ui7.js'])
+js = ''.join(rd(n) for n in ['lawdata.js', 'rev-tab.js', 'ux-polish.js', 'ux2.js', 'ux3.js', 'ux4.js', 'ux5.js', 'ux6.js', 'ui7.js', 'kb-ui.js'])
 rep('/* 시작 */', js + '\n/* 시작 */')
 # ui7 디자인 층: 첫 화면을 그린 뒤 시작 (아이콘·칩·테마 전환)
 rep("|| 'today');\n</script>", "|| 'today');\nUI7.start();\n</script>")

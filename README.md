@@ -10,6 +10,10 @@ claude.ai 아티팩트 **승진고시 마스터**(https://claude.ai/artifact/XmA
 | `lawdata.js` `rev-tab.js` `ux-polish.js` `ux2.js` … `ux6.js` | 덧붙이는 기능 조각 (규정 불러오기, 개정 탭, 칩/패널/검색 화면, 뻥뚫, 일정, 문제 연동, 복습 카드). 뒤 파일이 앞 파일의 함수를 덮어쓰는 순서이므로 `build_artifact.py` 의 `js` 목록 순서가 중요합니다. |
 | `*.css` | 위 조각에 딸린 스타일 |
 | `ui7.css` `ui7.js` | **디자인 층**(맨 마지막). shadcn/ui zinc 무채색 + Radix red 색 체계(라이트·다크 짝), 이모지 → 선 아이콘, 드롭다운 → 칩(원래 select 는 숨긴 채 값만 바꿈), 원형으로 퍼지는 테마 전환. 기능 함수는 덮어쓰지 않고 그려진 화면만 바꿉니다. 글꼴은 Pretendard(설치 시) → Noto Sans KR, 숫자는 JetBrains Mono. |
+| `kb/` | **기출 근거 DB** — 기출 432문항의 근거 조문·원문 인용·형식·난이도·함정. 설명 `kb/README.md`, 요약 `kb/기출기준.md`. 빌드 때 검사를 통과해야 하며 페이지 안(`D.kb`)에 들어간다. |
+| `kb-ui.js` | 기출 근거를 앱에 보여 줌: 기출 정답 공개 뒤 근거 조문(누르면 원문 패널)·함정·개정 차이, 회독 조문의 "기출 N" 배지 |
+| `backup/progress.json` | 학습 기록(아티팩트 DB `state/progress`) 백업 — 복원용 |
+| `CLAUDE.md`, `.claude/skills/` | Claude 작업 규칙과 스킬: `exam-kb`(카드·문제·검수), `kb-annotate`(DB 기록), `artifact-release`(게시·백업), `artifact-restore`(복원) |
 | `build_artifact.py` | 기준 페이지 + 조각 → `orgmaster.html`(게시용 본문) 과 테스트용 `site/index.html` |
 | `dist/orgmaster.html` | **게시한 최종 페이지** (버전 27 시점). 빌드 없이도 이 파일로 복구할 수 있습니다. |
 | `site/data/laws/*.json` | 규정 8종 본문 (처음 열 때 불러옴) — `convert_regs.py` 로 생성 |

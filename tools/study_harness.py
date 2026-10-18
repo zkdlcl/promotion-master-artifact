@@ -14,6 +14,7 @@ from datetime import datetime, timezone
 ROOT = Path(__file__).resolve().parents[1]
 OWNED = {
     'README.md', 'build_artifact.py', 'op-study.js', 'op-study.css',
+    'card-review.js', 'card-review.css', 'tests/review-scope-test.mjs', 'tests/card-test.mjs',
     'tests/op-study-test.mjs', 'tests/study-map-test.mjs', 'tests/harness_test.py',
     'tools/study_harness.py', '.codex/hooks.json', '.claude/hooks/auto-commit.sh',
     'docs/구조도-확장-진행.md', 'docs/구조도-새세션-프롬프트.md',
@@ -72,7 +73,7 @@ def validate():
     threading.Thread(target=server.serve_forever,daemon=True).start()
     env = dict(os.environ,TEST_URL=f'http://127.0.0.1:{server.server_port}/index.html')
     try:
-        for name in ('op-study','study-map'):
+        for name in ('op-study','study-map','review-scope'):
             print(run(['node',f'tests/{name}-test.mjs'],env=env),end='',flush=True)
         for name in ('ux8','card','law'):
             # 고정 URL만 임시 서버로 바꾼 복사본. 원본 테스트는 수정하지 않는다.

@@ -32,9 +32,9 @@ const home = await page.evaluate(() => ({
   opts: [...document.querySelectorAll("#q-group option")].map((o) => o.textContent.replace(/\s+/g, " ").trim()),
   sel: document.getElementById("q-group").value, next: SCHED.find((s) => s.n && !s.prep && s.d >= todayKey()).n,
 }));
-ok("묶음: 전체 + 1~8차 단위(+조직법/정관 하위)", home.opts.length === 1 + 5 + 5, home.opts.join(" | "));
-ok("차수 표기(1차…8차)", ["1차 · 조직법·정관", "2차 · 운영규정 1~5장", "3차 · 운영규정 6~7장", "4차 · 인사관리시행규칙", "5차 · 보수운영규정", "6차 · 재무·여비·감사", "7차 · 국제인도법", "8차 · 국제적십자규약"].every((t) => home.opts.some((o) => o.includes(t))));
-ok("처음 열면 다음 스터디 시험의 묶음", home.sel === "g" + home.next, `선택 ${home.sel}, 다음 시험 ${home.next}차`);
+ok("묶음: 전체 + 다음 스터디 + 고정 과목 범위", home.opts.length === 15, home.opts.join(" | "));
+ok("과목 표기: 과거 날짜·차수·하위 가지 기호 없음", !home.opts.some(o => /└|\d차|\(\d+\//.test(o)) && ["조직법·정관", "운영규정 1~5장", "운영규정 6~7장", "인사관리시행규칙", "보수운영규정", "재무·여비·감사", "국제인도법", "국제적십자규약"].every(t => home.opts.some(o => o.includes(t))));
+ok("처음 열면 다음 스터디 시험의 범위", home.sel === "next", `선택 ${home.sel}, 다음 시험 ${home.next}차`);
 ok("2회독 이후 단위는 따로 만들지 않음(묶음에 '2회독' 없음)", !home.opts.some((o) => /회독/.test(o)));
 
 /* ── 4차 묶음 ── */

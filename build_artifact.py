@@ -78,6 +78,7 @@ rep("const m = seg.match(/^(조직법|정관|운영규정)/);", "const m = seg.m
 rep("""`<span class="badge" title="${esc(D.topics[t])}">${tl(t)}</span>`""", """`<span class="badge" title="${esc(tl(t) + ' · ' + D.topics[t])}">${esc(topicShort(t))}</span>`""")
 rep(",['2025','2025 기출 (5/23)'],['2024','2024 기출 (5/24)']", "")
 rep("const exLabel = e =>", "let exLabel = e =>")
+rep('${GROUPS.map(g => `<option value=', '${cardGroups().map(g => `<option value=')
 rep("const exAnswers = e => (e.a.match(/[①②③④⑤]/g) || []);", "const exAnswers = e => (e.a.match(/[①②③④⑤⑥]/g) || []);")
 rep("bad = X.res.filter(r => !r.ok).map(r => D.exam.find(e => e.id === r.id));", "bad = X.res.filter(r => !r.ok).map(r => exById(r.id));")
 rep("X.queue = X.res.filter(r => !r.ok).map(r => D.exam.find(q => q.id === r.id));", "X.queue = X.res.filter(r => !r.ok).map(r => exById(r.id));")
@@ -112,10 +113,10 @@ rep('<section class="pane" id="p-read"></section>', '<section class="pane" id="p
 rep("['read','📖 회독'],", "['read','📖 회독'],['bt','🕳 뻥뚫'],")
 rep("['cho','🔤 자음퀴즈'],", "")
 
-css = ''.join(rd(n) for n in ['rev-tab.css', 'ux-polish.css', 'ux2.css', 'ux4.css', 'ui7.css', 'ux8.css', 'op-study.css'])
+css = ''.join(rd(n) for n in ['rev-tab.css', 'ux-polish.css', 'ux2.css', 'ux4.css', 'ui7.css', 'ux8.css', 'op-study.css', 'card-review.css'])
 k = body.index('</style>')
 body = body[:k] + css + '\n' + body[k:]
-js = ''.join(rd(n) for n in ['lawdata.js', 'rev-tab.js', 'ux-polish.js', 'ux2.js', 'ux3.js', 'ux4.js', 'ux5.js', 'ux6.js', 'ui7.js', 'kb-ui.js', 'ux8.js', 'op-study.js'])
+js = ''.join(rd(n) for n in ['lawdata.js', 'rev-tab.js', 'ux-polish.js', 'ux2.js', 'ux3.js', 'ux4.js', 'ux5.js', 'ux6.js', 'ui7.js', 'kb-ui.js', 'ux8.js', 'op-study.js', 'card-review.js'])
 rep('/* 시작 */', js + '\n/* 시작 */')
 # ui7 디자인 층: 첫 화면을 그린 뒤 시작 (아이콘·칩·테마 전환)
 rep("|| 'today');\n</script>", "|| 'today');\nUI7.start();\n</script>")

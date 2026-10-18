@@ -1,0 +1,26 @@
+{
+  "description": "구조도 작업: 검증된 변경만 로컬 자동 커밋, 세션 인계 메모. push하지 않음.",
+  "hooks": {
+    "Stop": [{"hooks": [{
+      "type": "command",
+      "command": "python3 \"$(git rev-parse --show-toplevel)/tools/study_harness.py\" stop",
+      "commandWindows": "powershell.exe -NoProfile -Command \"python (Join-Path (git rev-parse --show-toplevel) 'tools/study_harness.py') stop\"",
+      "timeout": 30,
+      "statusMessage": "검증된 구조도 변경을 로컬 커밋"
+    }]}],
+    "SessionStart": [{"matcher": "startup|resume|clear|compact", "hooks": [{
+      "type": "command",
+      "command": "python3 \"$(git rev-parse --show-toplevel)/tools/study_harness.py\" resume",
+      "commandWindows": "powershell.exe -NoProfile -Command \"python (Join-Path (git rev-parse --show-toplevel) 'tools/study_harness.py') resume\"",
+      "timeout": 10,
+      "additionalContextLimit": 2000
+    }]}],
+    "PreCompact": [{"hooks": [{
+      "type": "command",
+      "command": "python3 \"$(git rev-parse --show-toplevel)/tools/study_harness.py\" checkpoint",
+      "commandWindows": "powershell.exe -NoProfile -Command \"python (Join-Path (git rev-parse --show-toplevel) 'tools/study_harness.py') checkpoint\"",
+      "timeout": 10,
+      "statusMessage": "구조도 인계 체크포인트 저장"
+    }]}]
+  }
+}

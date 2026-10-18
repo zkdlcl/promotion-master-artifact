@@ -25,6 +25,47 @@ claude.ai 아티팩트 **승진고시 마스터**(https://claude.ai/artifact/XmA
 | `tests/` | 크롬 브라우저 테스트 (아래) |
 
 ## 다시 만들기
+
+### 전 과목 구조도 (로컬 추가)
+
+‘오늘’ 화면의 **오늘의 목표 과제 → 과목 이름 + 큰 틀 먼저 보기**로 연다.
+선택한 일일 목표의 과목을 우선하고, 없는 경우 다음 스터디의 과목을 안내한다.
+지도 위쪽의 과목 칩으로 조직법·정관·운영규정부터 국제인도법·국제적십자규약까지 11종을 선택할 수 있다.
+전체 지도에서 묶음을 누르면 장·절·조문/문단을 묶은 ER 도표 형태의 목차가 열린다.
+정관의 절, 규약의 전문, 국제인도법 머릿글·문단, 유관법령의 법령별 발췌 구분을 보존한다.
+11종 648개 조문/문단의 제목·순서는 원문에서 가져오며, 선은 포함 관계를 나타낸다. 별표는 기존 원문 회독에서 확인한다.
+퀴즈·단계별 과제·추가 완료 체크 없이 가볍게 본 뒤 ‘이제 원문 읽기’로 기존 회독 화면에 연결한다.
+구조도 열람은 기존 목표 개수·완료율·회독·카드·서버 기록을 바꾸지 않는다.
+구현은 `op-study.js`·`op-study.css`, 브라우저 검증은 `tests/op-study-test.mjs`·`tests/study-map-test.mjs`이다.
+
+로컬로 공부하기:
+
+```powershell
+python -X utf8 build_artifact.py
+python -m http.server 8766 --bind 127.0.0.1 --directory site
+# http://127.0.0.1:8766/index.html 열기
+```
+
+구조도 테스트는 위 서버를 실행한 상태에서 `node tests/op-study-test.mjs`로 실행한다.
+다른 서버를 쓰려면 `TEST_URL` 환경변수에 전체 페이지 주소를 지정한다.
+
+진행표는 [구조도-확장-진행.md](docs/구조도-확장-진행.md), 인계 프롬프트는 [구조도-새세션-프롬프트.md](docs/구조도-새세션-프롬프트.md)에 있다.
+
+### 검증과 자동 커밋 하네스
+
+```powershell
+python -X utf8 tools/study_harness.py validate   # 임시 서버·6개 검증 묶음, 소스 해시 영수증 저장
+python -X utf8 tools/study_harness.py stop       # 영수증이 일치하는 구조도 변경만 로컬 커밋
+python -X utf8 tools/study_harness.py checkpoint # 진행표·프롬프트·Git 상태의 로컬 인계 복사본
+```
+
+Codex의 `.codex/hooks.json`에 Stop/SessionStart/PreCompact를 설정했다.
+새 훅은 최초 `/hooks`에서 신뢰한 뒤 사용할 수 있다. 현재 세션에서 자동 실행된다고 가정하지 않는다.
+Claude의 기존 Stop 훅도 같은 Python 하네스를 호출한다. 검증 후 코드가 바뀌면 커밋을 보류한다.
+구조도 작업 외 파일을 임의로 stage하지 않으며, 자동 push·게시 기능은 없다.
+
+### 전체 빌드
+
 ```
 python -X utf8 convert_regs.py     # 규정 JSON + 목차 (빈칸 b1/b2 자동 생성)
 python -X utf8 make_cards.py       # 새 규정 복습 카드

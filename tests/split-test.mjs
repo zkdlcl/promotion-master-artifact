@@ -64,14 +64,19 @@ await sleep(400);
 const s2 = await state(page);
 ok("본문에서 다른 참조 → 패널 내용 교체(스택 1)", s2.stack === 1 && s2.ti !== t0 && s2.split, `${t0} → ${s2.ti}`);
 // 패널 안의 참조 → 쌓임, 뒤로
+// 지금 연 조문에 참조가 없으면 참조가 있는 조문을 연다 (늘 같은 검사가 돌도록)
+if (!(await page.evaluate(() => !!document.querySelector("#pk-body .xr")))) {
+  await page.evaluate(() => { const a = D.articles.find((x) => x.type === "a" && x.law === "운영규정" && /제\d+조/.test(x.html.replace(/<[^>]+>/g, "").replace(/^[^]*?\)/, ""))); openPeek("a|" + artId(a)); }); await sleep(500);
+}
 const nested = await page.evaluate(() => !!document.querySelector("#pk-body .xr"));
+ok("패널 안에 참조 링크가 있는 조문", nested);
 if (nested) {
   await page.evaluate(() => document.querySelector("#pk-body .xr").click()); await sleep(400);
   const s3 = await state(page);
   ok("패널 안 참조 → 쌓임(스택 2)", s3.stack === 2, s3.ti);
   await click("#pk-back");
   ok("뒤로 → 스택 1", (await state(page)).stack === 1);
-} else res.push("SKIP  패널 안 참조 없음");
+}
 // 패널에서 '원문에서 보기'는 패널을 닫지 않고 본문만 이동
 const y1 = await page.evaluate(() => scrollY);
 await page.evaluate(() => document.querySelector("[data-pkgo]").click()); await sleep(1100);

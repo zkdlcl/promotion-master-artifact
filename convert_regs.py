@@ -2,6 +2,7 @@
 실행: python -X utf8 convert_regs.py
 """
 import json, re, os, html as H
+from blankfix import fix_blanks, glued_left
 
 SP = os.path.dirname(os.path.abspath(__file__))
 SRC = os.path.join(SP, 'regs.json')
@@ -176,6 +177,7 @@ def content_html(content):
 
 
 STD = re.compile(r'^제(\d+)조(?:의(\d+))?$')
+FIXLOG = []
 
 
 def convert(src_name, law, fid, regs):
@@ -221,6 +223,8 @@ def convert(src_name, law, fid, regs):
             while no in used:
                 no = f'{base} #{k}'; k += 1
             used.add(no)
+            body = fix_blanks(body, FIXLOG)   # 낱말 중간 빈칸(제[2차]) → [제2차]
+            assert not glued_left(body), (law, no, glued_left(body))
             arts.append({'type': 'a', 'no': no, 'title': t, 'topics': [], 'ch': chidx, 'html': body})
     data = {'law': law, 'label': src_name, 'id': fid, 'articles': arts, 'extra': ''.join(extra)}
     index = {'law': law, 'label': r['name'], 'id': fid, 'file': f'data/laws/{fid}.json',
@@ -240,4 +244,5 @@ if __name__ == '__main__':
         n_b1 = sum(a['html'].count('class="b b1"') for a in data['articles'] if a['type'] == 'a')
         n_b2 = sum(a['html'].count('class="b b2"') for a in data['articles'] if a['type'] == 'a')
         print(f"{law}: 조문 {index['count']}, 장 {len(index['chapters'])}, 별표 {len(index['byeol'])}(+기타), 빈칸 b1 {n_b1} / b2 {n_b2}, 파일 {os.path.getsize(p)//1024}KB")
+    print('빈칸 경계 바로잡음', len(FIXLOG), '곳:', ', '.join(sorted(set(FIXLOG))))
     json.dump(idx, open(os.path.join(SP, 'site', 'lawindex.json'), 'w', encoding='utf8'), ensure_ascii=False, separators=(',', ':'))

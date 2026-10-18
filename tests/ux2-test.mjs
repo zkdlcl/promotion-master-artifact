@@ -48,11 +48,11 @@ ok("끝내기 → 처음으로(새 화면)", await page.evaluate(() => document.
 await page.evaluate(() => showTab("bt")); await sleep(300);
 const b1 = await page.evaluate(() => ({
   rows: document.querySelectorAll("#p-bt .cs-row").length,
-  topics: document.querySelectorAll("#p-bt [data-btt]").length,
+  topics: (document.getElementById("bt-sel") || {options: []}).options.length,
   start: document.getElementById("bt-start").textContent,
   tabs: [...document.querySelectorAll(".tab")].map((t) => t.textContent.trim()),
 }));
-ok("뻥뚫 탭 + 설정 칩 6줄", b1.rows === 7 && b1.topics >= 5 && b1.tabs.includes("뻥뚫"), JSON.stringify({ rows: b1.rows, topics: b1.topics }));
+ok("뻥뚫 탭 + 설정 8줄(범위 select·화면 키보드 포함)", b1.rows === 8 && b1.topics >= 5 && b1.tabs.includes("뻥뚫"), JSON.stringify({ rows: b1.rows, topics: b1.topics }));
 ok("시작 버튼 문구", /시작 \(\d+개 조문\)/.test(b1.start), b1.start);
 await page.screenshot({ path: "ux2-bt-home.png" });
 
@@ -112,8 +112,8 @@ await click("#bt-end"); await click("#bt-home");
 // 설정 유지
 ok("설정 저장(S.btp)", await page.evaluate(() => S.btp && S.btp.lv === 3 && S.btp.md === "tap"), await page.evaluate(() => JSON.stringify(S.btp)));
 // 법령 전환
-await click('[data-bl="운영규정"]');
-ok("운영규정 범위 칩(그룹 포함)", await page.evaluate(() => document.querySelectorAll("#p-bt [data-btt]").length >= 10 && btCands().length > 0), String(await page.evaluate(() => btCands().length)));
+await click('[data-btu="2"]');
+ok("2차 → 운영규정 범위 select(그룹 포함)", await page.evaluate(() => document.getElementById("bt-sel").options.length >= 7 && BT.law === "운영규정" && btCands().length > 0), String(await page.evaluate(() => btCands().length)));
 
 /* ── 오늘 ── */
 await page.evaluate(() => showTab("today")); await sleep(400);

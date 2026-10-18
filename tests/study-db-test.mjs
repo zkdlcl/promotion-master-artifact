@@ -2,6 +2,8 @@ import puppeteer from "puppeteer-core";
 import { readFileSync } from "fs";
 /* DB 동기화 모드: 서버 기록(백업)을 받은 뒤에만 정정하고 서버에 저장. 기기에는 낡은 기록이 있어도 서버 기록 기준 */
 const raw = JSON.parse(readFileSync(new globalThis.URL("../backup/progress.json", import.meta.url), "utf8"));
+/* 백업은 이미 정정된(st2fix) 기록이므로, 정정 전 서버 기록을 흉내 내려고 표시만 지운다 */
+{ const j = JSON.parse(raw.json); delete j.seeds.st2fix; raw.json = JSON.stringify(j); }
 const browser = await puppeteer.launch({ executablePath: "C:/Program Files/Google/Chrome/Application/chrome.exe", headless: "new", args: ["--no-sandbox"] });
 const page = await browser.newPage(); const errors = [];
 page.on("pageerror", (e) => errors.push(e.message));

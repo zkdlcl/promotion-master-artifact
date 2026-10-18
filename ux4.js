@@ -209,7 +209,7 @@ function syncToc(){
     aside.addEventListener('click', e => { const b = e.target.closest('[data-tj]'); if (!b) return; const j = $('#r-jump'); j.value = b.dataset.tj; j.dispatchEvent(new Event('change')); });
   }
   const jump = $('#r-jump'); let h = '';
-  const item = o => { const id = o.value.slice(2), read = S.reads[id] > 0; return `<button class="toc-a" data-tj="${esc(o.value)}" data-id="${esc(id)}"><span class="ck">${read ? '✓' : ''}</span><span>${esc(o.textContent.trim())}</span></button>`; };
+  const item = o => { const id = o.value.slice(2), n = S.reads[id] || 0; return `<button class="toc-a" data-tj="${esc(o.value)}" data-id="${esc(id)}"><span class="ck">${n > 1 ? n : n ? '✓' : ''}</span><span>${esc(o.textContent.trim())}</span></button>`; };
   [...jump.children].forEach(c => {
     if (c.tagName === 'OPTION' && c.value.startsWith('a-')) h += item(c);
     if (c.tagName === 'OPTGROUP'){

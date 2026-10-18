@@ -1,0 +1,46 @@
+
+/* ── ux8: 헤더 통합 검색 ── */
+.hd h1{flex:none}
+.gs{flex:1 1 auto;max-width:520px;margin:0 auto;display:flex;align-items:center;gap:8px;min-width:0;height:38px;padding:0 12px;
+  background:var(--soft);border:1px solid var(--line);border-radius:10px;cursor:text}
+.gs:focus-within{background:var(--card);border-color:var(--line2);box-shadow:0 0 0 3px color-mix(in srgb,var(--ink) 8%,transparent)}
+.gs .ic{width:16px;height:16px;margin:0;color:var(--mute);flex:none}
+#gsearch{flex:1;min-width:0;border:0;background:transparent;color:var(--ink);font:inherit;font-size:.95rem;padding:0;outline:none;min-height:0;box-shadow:none}
+#gsearch::-webkit-search-cancel-button{cursor:pointer}
+#theme{flex:none}
+.tab[data-id="find"]{display:none}
+#p-find > h2, #p-find #f-q{display:none}
+@media (max-width:640px){
+  .gs{height:36px;padding:0 10px}
+  .hd .dday{flex:none;max-width:34vw}
+  #sync{display:none}
+}
+
+/* ── 뻥뚫: 차수 박스 ── */
+.bt-units{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin:4px 0 6px}
+.bt-u{display:flex;flex-direction:column;align-items:stretch;gap:4px;text-align:left;font:inherit;color:var(--ink);cursor:pointer;
+  background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;min-height:84px}
+.bt-u:hover{border-color:var(--line2);background:var(--soft)}
+.bt-u[aria-pressed="true"]{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink) inset}
+.bt-u.next .bt-u-h b::after{content:'다음';white-space:nowrap;margin-left:6px;font-size:.68rem;font-weight:700;color:var(--red-d);background:var(--red-bg);border-radius:6px;padding:1px 6px;vertical-align:2px}
+.bt-u-h b{white-space:nowrap}
+.bt-u-h{display:flex;flex-wrap:nowrap;justify-content:space-between;align-items:baseline;gap:6px}
+.bt-u-k{font-weight:650;font-size:.92rem;line-height:1.3}
+.bt-u-p{display:flex;align-items:center;gap:8px;margin-top:auto}
+.bt-u-p .bar{flex:1;margin:0;height:5px}
+.bt-scope{display:flex;flex-direction:column;gap:8px;min-width:0}
+#bt-sel{font:inherit;font-size:.95rem;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:10px;min-height:44px;padding:0 10px;max-width:100%}
+@media (max-width:640px){ .bt-units{grid-template-columns:repeat(2,minmax(0,1fr))} }
+
+/* ── 오늘: 목표 = 체크박스(체크) + 글자 버튼(이동) ── */
+.check.goal{align-items:stretch;gap:2px;padding:0}
+.goal-ck{display:grid;place-items:center;min-width:44px;min-height:44px;cursor:pointer;flex:none}
+.goal-ck input{margin:0}
+.goal-t{flex:1;min-width:0;text-align:left;font:inherit;color:inherit;background:none;border:0;border-radius:8px;padding:10px 8px;cursor:pointer;line-height:1.5}
+.goal-t:hover{background:var(--soft)}
+.goal-t::after{content:' ›';color:var(--mute)}
+.check.done .goal-t{color:var(--mute);text-decoration:line-through}
+
+/* ── 복습 카드: 질문 머리의 규정·조문 ── */
+.q-ctx{margin:10px 0 -2px;font-size:.85rem;font-weight:650;color:var(--mute);letter-spacing:-.01em}
+.ans .src .xr{cursor:pointer}

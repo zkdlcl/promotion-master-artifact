@@ -97,8 +97,8 @@ await page.screenshot({ path: "law-ihl.png" });
 
 /* ── 뻥뚫: 새 규정으로 ── */
 await page.evaluate(() => showTab("bt")); await sleep(400);
-await page.evaluate(() => document.querySelector('[data-bl="재무규정"]').click());
-ok("뻥뚫: 재무규정 범위 = 장 칩", await waitFor(page, () => document.querySelectorAll("#p-bt [data-btt]").length > 5 && BT.law === "재무규정"), await page.evaluate(() => document.querySelectorAll("#p-bt [data-btt]").length + "칩"));
+await page.evaluate(() => document.querySelector('[data-btu="6"]').click());
+ok("뻥뚫: 6차 → 재무규정 범위 = 장 select", await waitFor(page, () => document.getElementById("bt-sel") && document.getElementById("bt-sel").options.length > 5 && BT.law === "재무규정"), await page.evaluate(() => (document.getElementById("bt-sel") || {options: []}).options.length + "개"));
 await click('[data-lv="2"]'); await click('[data-max="5"]'); await click('[data-md="type"]'); await click('[data-cnt="5"]'); await click('[data-ord="num"]');
 const cands = await page.evaluate(() => btCands().length);
 ok("뻥뚫: 출제 가능 조문", cands > 10, String(cands));
@@ -109,7 +109,7 @@ await page.evaluate(() => { document.querySelectorAll("#bt-art .bt-in").forEach(
 await click("#bt-check");
 ok("뻥뚫 채점", await page.evaluate(() => document.getElementById("bt-res").textContent.includes("모두 맞혔")));
 await click("#bt-end"); await click("#bt-home");
-await page.evaluate(() => document.querySelector('[data-bl="국제인도법"]').click()); await sleep(500);
+await page.evaluate(() => document.querySelector('[data-btu="7"]').click()); await sleep(500);
 await click('[data-lv="3"]'); await click("#bt-start");
 ok("뻥뚫: 국제인도법 난이도 3 시작", await page.evaluate(() => BT.sess && document.querySelectorAll("#bt-art .bt-in, #bt-art .bt-tap").length > 0));
 await click("#bt-end"); await click("#bt-home");

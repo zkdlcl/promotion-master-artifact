@@ -11,11 +11,13 @@ claude.ai 아티팩트 **승진고시 마스터**(https://claude.ai/artifact/XmA
 | `*.css` | 위 조각에 딸린 스타일 |
 | `ui7.css` `ui7.js` | **디자인 층**(맨 마지막). shadcn/ui zinc 무채색 + Radix red 색 체계(라이트·다크 짝), 이모지 → 선 아이콘, 드롭다운 → 칩(원래 select 는 숨긴 채 값만 바꿈), 원형으로 퍼지는 테마 전환. 기능 함수는 덮어쓰지 않고 그려진 화면만 바꿉니다. 글꼴은 Pretendard(설치 시) → Noto Sans KR, 숫자는 JetBrains Mono. |
 | `kb/` | **기출 근거 DB** — 기출 432문항의 근거 조문·원문 인용·형식·난이도·함정. 설명 `kb/README.md`, 요약 `kb/기출기준.md`. 빌드 때 검사를 통과해야 하며 페이지 안(`D.kb`)에 들어간다. |
+| `ux8.js` `ux8.css` | 2026-10-18 사용 피드백 반영(맨 마지막): 헤더 통합 검색, 탭 이동 시 진행 화면 유지, 뻥뚫 차수 박스+장·절 select·Enter/Tab·틀린 칸만 다시·화면 키보드 숨김, 뻥뚫 채점 → 회독 +1(하루 1번), 다회독 진도, 오늘 목표 글자=이동, 복습 카드 질문 머리 조문·답 출처 링크. 요청 목록 `docs/개선요청-2026-10-18.md` |
+| `blankfix.py` | 빈칸 경계 바로잡기(징계[의결] → [징계의결]). 빌드(조직법·정관·운영규정)와 `convert_regs.py`(나머지)가 같이 씀, 예외는 `BLANK_FIX` |
 | `kb-ui.js` | 기출 근거를 앱에 보여 줌: 기출 정답 공개 뒤 근거 조문(누르면 원문 패널)·함정·개정 차이, 회독 조문의 "기출 N" 배지 |
 | `backup/progress.json` | 학습 기록(아티팩트 DB `state/progress`) 백업 — 복원용 |
 | `CLAUDE.md`, `.claude/skills/` | Claude 작업 규칙과 스킬: `exam-kb`(카드·문제·검수), `kb-annotate`(DB 기록), `artifact-release`(게시·백업), `artifact-restore`(복원) |
 | `build_artifact.py` | 기준 페이지 + 조각 → `orgmaster.html`(게시용 본문) 과 테스트용 `site/index.html` |
-| `dist/orgmaster.html` | **게시한 최종 페이지** (버전 32 시점). 빌드 없이도 이 파일로 복구할 수 있습니다. |
+| `dist/orgmaster.html` | **게시한 최종 페이지** (버전 33 시점). 빌드 없이도 이 파일로 복구할 수 있습니다. |
 | `site/data/laws/*.json` | 규정 8종 본문 (처음 열 때 불러옴) — `convert_regs.py` 로 생성 |
 | `site/data/quiz/*.json` | 기출 12 + 스터디 문제 98 묶음 — `quiz/convert_quiz.py` 로 생성 후 후처리(아래) |
 | `site/*.json` | 규정 목차, 문제 목차, 기록 이전표, 새 복습 카드 |
@@ -54,7 +56,10 @@ cd site && python -m http.server 8765          # 다른 터미널에서
 cd tests && npm install && node card-test.mjs  # quiz-test, law-test, split-test, ux4-test, ui7-test … 도 같은 방식
 ```
 Chrome 경로는 `C:/Program Files/Google/Chrome/Application/chrome.exe` 로 되어 있습니다.
-`rev-test`의 favicon 404, `ux-test`의 "장 칩 생성"은 알려진 무해한 항목(테스트 가정)입니다.
+모든 테스트는 PASS 만 나와야 합니다(2026-10-18에 예전 '알려진 무해 실패' 2건도 테스트를 고쳐 없앰). 한 번에 돌리기:
+```
+for t in *-test.mjs; do node $t | grep -v ^PASS; done   # 아무것도 안 나오면 통과
+```
 
 ## 게시
 Artifact 도구로 `orgmaster.html` 을 같은 URL에 게시하고, `data/laws/*.json`, `data/quiz/*.json` 중 **바뀐 파일만** `files` 로 함께 올립니다(빠진 파일은 이전 것이 그대로 남음).

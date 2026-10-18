@@ -50,7 +50,7 @@ const UI7 = (() => {
   const MAP = {
     '🎯':'target','📖':'book','🕳':'blank','🧠':'cards','🗂':'exam','🆕':'diff','🔍':'search','📊':'chart','🔬':'flask','🧪':'flask',
     '💬':'chat','🔤':'type','👁':'eye','🙈':'eyeoff','📝':'pen','✏':'pen','✍':'pen','🗓':'cal','📅':'cal','📕':'bookx','📚':'books',
-    '▶':'play','✅':'ok','❌':'no','☁':'cloud','⚠':'alert','👏':'spark','⏳':'hour','💡':'bulb','🧑':'user','📌':'pin','📈':'trend',
+    '▶':'play','✅':'ok','❌':'no','☁':'cloud','⚠':'alert','👏':'ok','⏳':'hour','💡':'bulb','🧑':'user','📌':'pin','📈':'trend',
     '🏷':'tag','🎓':'cap','📥':'inbox','📋':'list','🔢':'hash','👆':'tap','⏰':'alarm','🤝':'users','➖':'minus','↩':'undo',
   };
   const DOT = {'🔴':'var(--red)','🟢':'#30a46c','🟡':'#f5d90a'};

@@ -53,7 +53,7 @@ await page.screenshot({ path: "ux3-today-open.png" });
 /* 준비 버튼 → 이동 */
 await click('[data-prep="bt"]');
 ok("뻥뚫 준비 버튼 → 뻥뚫 탭 + 범위 지정", await page.evaluate(() => document.getElementById("p-bt").classList.contains("on") && BT.law === "운영규정" && BT.topic === "g3"), await page.evaluate(() => `${BT.law}/${BT.topic}`));
-ok("범위 칩이 해당 범위 선택", await page.evaluate(() => document.querySelector('#p-bt [data-btt="g3"]').getAttribute("aria-pressed") === "true"));
+ok("범위 select·차수 박스가 해당 범위 선택", await page.evaluate(() => document.getElementById("bt-sel").value === "g3" && document.querySelector('[data-btu="3"]').getAttribute("aria-pressed") === "true"));
 await page.evaluate(() => showTab("today")); await sleep(300);
 await click('[data-prep="read"]'); await sleep(500);
 ok("회독 준비 버튼 → 회독 탭 + 범위", await page.evaluate(() => document.getElementById("p-read").classList.contains("on") && R.law === "운영규정" && R.topic === "g3" && document.querySelectorAll("#r-body .art").length > 0), await page.evaluate(() => `${R.law}/${R.topic}/${document.querySelectorAll("#r-body .art").length}조`));
@@ -65,8 +65,8 @@ ok("10차: 운영규정+인사관리시행규칙 연결", sp[9].o.includes("운�
 
 /* 초성 옵션 */
 await page.evaluate(() => showTab("bt")); await sleep(200);
-await click('[data-bl="조직법"]'); await click('[data-md="type"]'); await click('[data-ch="1"]'); await click('[data-ord="num"]'); await click('[data-max="5"]'); await click('[data-cnt="5"]');
-ok("초성 칩 + 7줄", await page.evaluate(() => document.querySelectorAll("#p-bt .cs-row").length === 7 && document.querySelector('[data-ch="1"]').getAttribute("aria-pressed") === "true" && S.btp.ch === 1));
+await click('[data-btu="1"]'); await click('[data-md="type"]'); await click('[data-ch="1"]'); await click('[data-ord="num"]'); await click('[data-max="5"]'); await click('[data-cnt="5"]');
+ok("초성 칩 + 8줄", await page.evaluate(() => document.querySelectorAll("#p-bt .cs-row").length === 8 && document.querySelector('[data-ch="1"]').getAttribute("aria-pressed") === "true" && S.btp.ch === 1));
 await click("#bt-start");
 ok("초성 처음부터 표시(placeholder)", await page.evaluate(() => { const i = [...document.querySelectorAll("#bt-art .bt-in")]; return i.length > 0 && i.every((x) => x.placeholder.length > 0); }));
 await page.screenshot({ path: "ux3-bt-ch.png" });

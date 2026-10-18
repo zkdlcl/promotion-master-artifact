@@ -18,10 +18,9 @@ python -X utf8 build_artifact.py   # kb 검사 통과해야 빌드됨 → orgmas
 ```
 cd site && python -m http.server 8765        # 백그라운드
 cd tests && npm install
-node card-test.mjs; node law-test.mjs; node quiz-test.mjs; node split-test.mjs; node rev-test.mjs
-node ux-test.mjs; node ux2-test.mjs; node ux3-test.mjs; node ux4-test.mjs; node ui7-test.mjs; node kb-test.mjs
+for t in *-test.mjs; do node $t | grep -v ^PASS; done   # PASS 말고 나오는 줄이 없어야 통과
 ```
-알려진 무해 실패: rev-test favicon 404, ux-test "장 칩 생성". 실패는 앱 결함인지 테스트 가정인지 구분해 보고한다.
+알려진 무해 실패는 없다. 실패하면 앱 결함인지 테스트 가정인지 구분하고, 테스트 가정이면 테스트를 고쳐 다시 PASS 만 나오게 한다(실패를 '무해'로 남겨 두지 않는다).
 화면은 태블릿 가로(1180×820)·세로(820×1180)·폰(390×844), 라이트·다크로 캡처해 눈으로 확인한다.
 
 ## 3. 게시

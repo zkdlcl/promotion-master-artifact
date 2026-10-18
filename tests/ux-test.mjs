@@ -14,7 +14,7 @@ await page.goto(FILE, { waitUntil: "load" });
 await sleep(600);
 
 /* ── 회독 탭 ── */
-await page.evaluate(() => showTab("read"));
+await page.evaluate(() => { R.law = "운영규정"; R.topic = "0"; showTab("read"); });
 await sleep(500);
 const r1 = await page.evaluate(() => ({
   selHidden: ["r-topic", "r-mode", "r-jump"].every((id) => document.getElementById(id).hidden && getComputedStyle(document.getElementById(id)).display === "none"),

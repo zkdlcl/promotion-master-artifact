@@ -1,0 +1,41 @@
+import assert from 'node:assert/strict';
+import puppeteer from 'puppeteer-core';
+const browser=await puppeteer.launch({executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true,args:['--no-sandbox']});
+try {
+  const p=await browser.newPage(),errors=[];
+  p.on('pageerror',e=>errors.push(e.message));
+  await p.setViewport({width:1180,height:900});
+  await p.goto(process.env.TEST_URL||'http://127.0.0.1:8766/index.html',{waitUntil:'networkidle0'});
+  await p.evaluate(()=>{R.law='운영규정';showTab('read');});
+  assert.equal(await p.$('[data-om-read-map]'),null);
+  assert.equal(await p.$$eval('[data-om-global]',es=>es.length),1);
+  await p.evaluate(()=>{dayIdx=D.days.findIndex(d=>d.date==='2026-10-18');showTab('today');});
+  const snapshot=await p.evaluate(()=>JSON.stringify(S));
+  await p.evaluate(()=>document.querySelector('[data-goal="d'+dayIdx+'.2"]').click());
+  await p.waitForFunction(()=>document.activeElement.id==='table-10');
+  const position=await p.$eval('#table-10',el=>({top:el.getBoundingClientRect().top,title:el.textContent}));
+  assert.match(position.title,/휴직·근로시간 단축/);
+  assert.ok(position.top>=0 && position.top<450);
+  const rows=await p.evaluate(()=>[...document.querySelectorAll('#p-table tr')].map(tr=>tr.textContent));
+  const leave=rows.find(t=>t.startsWith('육아휴직'));
+  const reduced=rows.find(t=>t.startsWith('육아기 근로시간 단축'));
+  assert.match(leave,/만 8세 이하 또는 초등학교 2학년 이하/);
+  assert.match(leave,/임신 중인 직원/);assert.match(leave,/입양한 자녀/);assert.match(leave,/6개월 미만/);
+  assert.match(reduced,/만 12세 이하 또는 초등학교 6학년 이하/);
+  assert.equal(await p.evaluate(()=>JSON.stringify(S)),snapshot);
+  await p.screenshot({path:'tests/table-10-target.png'});
+  await p.evaluate(()=>{
+    const i=D.days.findIndex(d=>d.date==='2026-10-10'),j=D.days[i].goals.findIndex(g=>g.t.includes('7번'));
+    goalNav('d'+i+'.'+j);
+  });
+  await p.waitForFunction(()=>document.activeElement.id==='table-7');
+  assert.equal(await p.$$eval('#p-table .table-target',es=>es.length),1);
+  await p.$eval('#hideall',e=>e.click());
+  assert.ok(await p.$('#p-table.hideall'));
+  await p.setViewport({width:390,height:844});
+  await p.evaluate(()=>{const i=D.days.findIndex(d=>d.date==='2026-10-18');goalNav('d'+i+'.2');});
+  await p.waitForFunction(()=>document.activeElement.id==='table-10');
+  assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
+  assert.deepEqual(errors,[]);
+  console.log('PASS 회독 중복 버튼 제거, 오늘 비교 과제 → 10번 표 위치, 육아휴직/단축 연령 구분, 7번 표 이동·가리기·기록 보존·모바일');
+} finally {await browser.close();}

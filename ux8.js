@@ -158,6 +158,16 @@ function goalRows(){
 }
 function goalNav(key){
   const [i, j] = key.slice(1).split('.').map(Number), d = D.days[i], g = d && d.goals[j]; if (!g) return;
+  if(g.table){
+    showTab('table');
+    requestAnimationFrame(()=>{
+      if(!$('#p-table').classList.contains('on'))return;
+      const target=document.getElementById('table-'+g.table);if(!target)return;
+      $$('#p-table .table-target').forEach(el=>el.classList.remove('table-target'));
+      target.classList.add('table-target');target.focus({preventScroll:true});target.scrollIntoView({block:'start'});
+    });
+    return;
+  }
   const t = g.t.replace(/<[^>]+>/g, ''), title = d.title;
   const law = (t.match(/조직법|정관|운영규정/) || [])[0] || (/운영규정/.test(title) ? '운영규정' : /^정관/.test(title) ? '정관' : '조직법');
   const toRead = ref => { R.law = law; R.topic = '0'; saveRd(); showTab('read'); if (ref) setTimeout(() => goRef(ref), 80); };

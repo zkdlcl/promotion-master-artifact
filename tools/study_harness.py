@@ -15,6 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 OWNED = {
     'README.md', 'build_artifact.py', 'op-study.js', 'op-study.css',
     'card-review.js', 'card-review.css', 'tests/review-scope-test.mjs', 'tests/card-test.mjs',
+    'ux8.js', 'study_tables.py', 'tests/table_guidance_test.py', 'tests/table-goal-test.mjs',
     'tests/op-study-test.mjs', 'tests/study-map-test.mjs', 'tests/harness_test.py',
     'tools/study_harness.py', '.codex/hooks.json', '.claude/hooks/auto-commit.sh',
     'docs/구조도-확장-진행.md', 'docs/구조도-새세션-프롬프트.md',
@@ -63,6 +64,7 @@ def validate():
     (state_dir()/'verified.json').unlink(missing_ok=True)
     run(['node','--check','op-study.js'])
     run([sys.executable,'-m','unittest','discover','-s','tests','-p','harness_test.py'])
+    run([sys.executable,'-m','unittest','discover','-s','tests','-p','table_guidance_test.py'])
     # 기존 빌드의 KB 출력 순서만 바뀌는 부수효과 제거. 내용이 달라지면 중단.
     kb = ROOT/'kb/exam_kb.json'; before = kb.read_bytes()
     print(run([sys.executable,'-X','utf8','build_artifact.py']),end='')
@@ -73,7 +75,7 @@ def validate():
     threading.Thread(target=server.serve_forever,daemon=True).start()
     env = dict(os.environ,TEST_URL=f'http://127.0.0.1:{server.server_port}/index.html')
     try:
-        for name in ('op-study','study-map','review-scope'):
+        for name in ('op-study','study-map','review-scope','table-goal'):
             print(run(['node',f'tests/{name}-test.mjs'],env=env),end='',flush=True)
         for name in ('ux8','card','law'):
             # 고정 URL만 임시 서버로 바꾼 복사본. 원본 테스트는 수정하지 않는다.
@@ -90,7 +92,7 @@ def validate():
         server.shutdown(); server.server_close()
     git('diff','--check')
     receipt = {'fingerprint':fingerprint(),'base_head':git('rev-parse','HEAD').strip(),
-               'validated_at':datetime.now(timezone.utc).isoformat(),'tests':['harness','op-study','study-map','ux8','card','law']}
+               'validated_at':datetime.now(timezone.utc).isoformat(),'tests':['harness','table-guidance','op-study','study-map','review-scope','table-goal','ux8','card','law']}
     (state_dir()/'verified.json').write_text(json.dumps(receipt,ensure_ascii=False,indent=2),encoding='utf8')
     print('검증 영수증 저장 완료. Stop 훅에서 로컬 커밋할 수 있습니다.',flush=True)
 

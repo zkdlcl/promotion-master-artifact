@@ -23,6 +23,8 @@ def rep(old, new, count=1):
 # 2) 데이터에 규정 목차(lawIndex)를 넣는다 (규정 본문은 별도 파일에서 필요할 때 불러온다)
 m = re.search(r'(<script id="data" type="application/json">)(.*?)(</script>)', body, re.S)
 D = json.loads(m.group(2))
+import study_tables
+study_tables.enrich(D)
 D['lawIndex'] = json.load(open(P(os.path.join('site', 'lawindex.json')), encoding='utf8'))
 D['quizIndex'] = json.load(open(P(os.path.join('site', 'quizindex.json')), encoding='utf8'))
 # 원문 복원본 2024·2025 기출은 선배 앱 기출(past-07·past-08)과 같은 시험이라 빼고, 기록은 번호 대응표로 옮긴다

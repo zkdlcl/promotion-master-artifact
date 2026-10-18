@@ -53,11 +53,12 @@ try {
   assert.equal(await p.$eval('#q-in',e=>e.value),'입력 유지 확인');
   assert.deepEqual(await p.evaluate(()=>Q.queue.map(c=>c.id)),session);
   await p.evaluate(()=>{R.law='정관';R.topic='0';showTab('read');});
-  await p.$eval('[data-om-read-map]',e=>e.click());
-  await p.waitForFunction(()=>document.getElementById('om-title').textContent.startsWith('정관')&&!document.querySelector('.om-loading'));
+  assert.equal(await p.$('[data-om-read-map]'),null);
+  await p.$eval('[data-om-global]',e=>e.click());
+  await p.waitForSelector('.om-chapter');
   await p.$eval('[data-om-close]',e=>e.click());
   assert.equal(await p.evaluate(()=>R.law),'정관');
-  console.log('PASS 모든 탭의 구조도 메뉴·현재 회독 과목 연결·카드 입력과 세션 유지');
+  console.log('PASS 모든 탭의 구조도 메뉴·회독 중복 버튼 없음·카드 입력과 세션 유지');
   await p.evaluate(()=>{Q.sess=null;Q.group='next';showTab('quiz');});
   await p.setViewport({width:390,height:844});
   assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));

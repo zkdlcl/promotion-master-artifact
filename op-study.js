@@ -151,7 +151,6 @@ const OPStudy = (() => {
   },true);
   document.addEventListener('click',e=>{
     const global=e.target.closest('[data-om-global]');if(global){launch();return;}
-    if(e.target.closest('[data-om-read-map]')){launch(R.law);return;}
     if(e.target.closest('[data-om-launch]')){launch();return;}
     const b=e.target.closest('#op-map button');if(!b)return;
     if(b.hasAttribute('data-om-close')){close();return;}
@@ -170,11 +169,5 @@ const OPStudy = (() => {
   globalButton.setAttribute('data-om-global','');globalButton.setAttribute('aria-label','전체 과목 구조도 열기');
   globalButton.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="2" width="8" height="5" rx="1"/><path d="M12 7v5M5 16v-4h14v4"/><rect x="2" y="16" width="6" height="5" rx="1"/><rect x="9" y="16" width="6" height="5" rx="1"/><rect x="16" y="16" width="6" height="5" rx="1"/></svg><span>구조도</span>';
   document.querySelector('#tabs [data-id="read"]').after(globalButton);
-  const read=renderers.read;
-  renderers.read=function(){
-    read.apply(this,arguments);
-    const toolbar=document.querySelector('#p-read .toolbar');
-    if(toolbar&&!toolbar.querySelector('[data-om-read-map]'))toolbar.insertAdjacentHTML('afterbegin','<button type="button" class="b-line om-read-map" data-om-read-map>큰 구조 보기</button>');
-  };
   return {subjects,model,launch,get chapters(){return (model(law)||{chapters:[]}).chapters;}};
 })();

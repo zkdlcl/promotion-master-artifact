@@ -24,7 +24,7 @@ ok("빈칸 경계: [지사부회장], [면허]가", bl.jisa && bl.myun);
 
 // ── 헤더 검색
 ok("탭 목록에 검색 없음", await ev(() => getComputedStyle(document.querySelector('.tab[data-id="find"]')).display === "none"));
-await page.click("#gsearch"); await page.keyboard.type("서면의결"); await sleep(500);
+await page.click(".gs"); await page.keyboard.type("서면의결"); await sleep(500);
 ok("헤더 검색 → 결과", await ev(() => document.getElementById("p-find").classList.contains("on") && document.querySelectorAll("#f-out .fr, #f-out .fr2").length > 0));
 await page.screenshot({ path: "ux8-search.png" });
 

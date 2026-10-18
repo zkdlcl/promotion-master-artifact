@@ -7,6 +7,12 @@
 .gs .ic{width:16px;height:16px;margin:0;color:var(--mute);flex:none}
 #gsearch{flex:1;min-width:0;border:0;background:transparent;color:var(--ink);font:inherit;font-size:.95rem;padding:0;outline:none;min-height:0;box-shadow:none}
 #gsearch::-webkit-search-cancel-button{cursor:pointer}
+/* 아이콘만: 평소엔 돋보기 버튼, 누르거나 입력이 있으면 펼침 */
+.gs{flex:0 1 auto;width:38px;max-width:520px;padding:0;justify-content:center;gap:0;transition:width .18s ease}
+.gs #gsearch{flex:none;width:0;opacity:0}
+.gs:focus-within,.gs:has(#gsearch:not(:placeholder-shown)){flex:1 1 auto;width:auto;padding:0 12px;justify-content:flex-start;gap:8px}
+.gs:focus-within #gsearch,.gs:has(#gsearch:not(:placeholder-shown)) #gsearch{flex:1;width:auto;opacity:1}
+@media (max-width:640px){.gs{width:36px;padding:0}.gs:focus-within,.gs:has(#gsearch:not(:placeholder-shown)){padding:0 10px}}
 #theme{flex:none}
 .tab[data-id="find"]{display:none}
 #p-find > h2, #p-find #f-q{display:none}

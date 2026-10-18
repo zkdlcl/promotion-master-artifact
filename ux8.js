@@ -184,7 +184,7 @@ $('#p-today').addEventListener('click', e => { const b = e.target.closest('[data
 (function(){
   const hd = $('.hd'); if (!hd || $('#gsearch')) return;
   const wrap = document.createElement('label'); wrap.className = 'gs';
-  wrap.innerHTML = '<span class="gs-ic" aria-hidden="true">🔍</span><input id="gsearch" type="search" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="조문·기출·카드 검색" aria-label="통합 검색">';
+  wrap.innerHTML = '<span class="gs-ic" aria-hidden="true">🔍</span><input id="gsearch" type="search" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder=" " aria-label="통합 검색">';
   hd.querySelector('h1').after(wrap);
   const inp = $('#gsearch'); let tm = 0;
   const run = () => {

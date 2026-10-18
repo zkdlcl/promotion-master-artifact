@@ -41,6 +41,20 @@ claude.ai 아티팩트 **승진고시 마스터**(https://claude.ai/artifact/XmA
 
 로컬로 공부하기:
 
+현재 실행 중인 기존 `http://localhost:8765/index.html` 서버의 실제 제공 폴더는
+`C:\study\승진\APP\artifact-build\site`다. 이 작업 폴더와 별도 Git 복사본이므로
+여기서 push만 해서는 기존 화면이 갱신되지 않는다. 2026-10-18 해당 복사본도
+`df9344f`까지 fast-forward 후 빌드했고, **8765 주소에서** 표 위치 이동·육아휴직 연령·전 과목 구조도를 검증했다.
+이 주소에 반영할 때는 해당 복사본의 변경 유무를 확인하고 `git pull --ff-only` →
+`python -X utf8 build_artifact.py` → 8765 브라우저 검증까지 완료해야 한다.
+학습 기록은 덮어쓰지 않는다. 아래 8766 서버는 이 작업 폴더의 별도 미리보기다.
+
+Claude 아티팩트 주소는 별도의 운영 게시 대상이다. Git push나 로컬 빌드로 게시되지 않는다.
+현재 연결된 도구에는 Artifact read/publish가 없어 이번 변경의 **아티팩트 운영 게시 완료는 확인하지 못했다**.
+게시 도구가 연결되면 `.claude/skills/artifact-release/SKILL.md` 절차로 기존 본문 비교,
+게시, 운영 화면 확인, 학습 기록 읽기 백업까지 완료해야 한다.
+`dist/orgmaster.html`은 실제 게시가 확인된 버전 34를 계속 보존한다.
+
 ```powershell
 python -X utf8 build_artifact.py
 python -m http.server 8766 --bind 127.0.0.1 --directory site

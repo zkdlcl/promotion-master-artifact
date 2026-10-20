@@ -55,7 +55,7 @@ function pkEnsure(){
     const t = e.target;
     if (t.id === 'pk-scrim' || t.id === 'pk-x') return closePeek();
     if (t.id === 'pk-back') return pkBack();
-    const m = t.closest('[data-pkmode]'); if (m) return setMode(m.dataset.pkmode);
+    const m = t.closest('[data-pkmode]'); if (m){ PK.mode = m.dataset.pkmode; return renderPeek(); }
     if (t.closest('[data-pkamend]')) return setAmend(!S.showAmend);
     const rd = t.closest('[data-pkread]'); if (rd){ const k = rd.dataset.pkread; S.reads[k] = (S.reads[k] || 0) + 1; save(); if ($('#p-read').dataset.init) drawRead(true); renderPeek(); return; }
     const go = t.closest('[data-pkgo]'); if (go){ const k = go.dataset.pkgo; if (pkSplit()){ PK.keep = true; showTab('read'); PK.keep = false; } else { closePeek(); showTab('read'); } setTimeout(() => goRef('a|' + k), 80); return; }
@@ -73,6 +73,7 @@ function pkEnsure(){
 function openPeek(x, fromPanel){
   pkEnsure();
   PK.stack = (pkOpen() && fromPanel) ? PK.stack.concat([x]) : [x];   /* 패널 안에서 누르면 쌓고, 본문에서 누르면 바꾼다 */
+  if (!(pkOpen() && fromPanel)) PK.mode = '0';   /* 링크로 여는 조문·별표는 가리지 않은 원문으로 연다 (패널 안 버튼으로만 가리기) */
   $('#pk').hidden = false; applySplit(); renderPeek(); updFab();
 }
 function closePeek(){
@@ -91,7 +92,7 @@ async function renderPeek(){
   const box = $('#pk-body'), ti = $('#pk-ti'), tools = $('#pk-tools');
   $('#pk-back').textContent = PK.stack.length > 1 ? `← ${PK.stack.length - 1}` : '←';
   const ib = (attr, ico, tip, on, extra) => `<button class="pk-ib" ${attr} title="${tip}" aria-label="${tip}" ${on === undefined ? '' : `aria-pressed="${!!on}"`} ${extra || ''}>${ico}</button>`;
-  const modeSeg = `<span class="pk-grp">${[['0', '👁', '원문 그대로'], ['1', '①', '① 숫자·주체 가리기'], ['2', '②', '② 동사까지 가리기'], ['3', '③', '③ 조사만 남기고 가리기']].map(m => ib(`data-pkmode="${m[0]}"`, m[1], m[2], R.mode === m[0])).join('')}</span>`;
+  const modeSeg = `<span class="pk-grp">${[['0', '👁', '원문 그대로'], ['1', '①', '① 숫자·주체 가리기'], ['2', '②', '② 핵심어 + 일부 낱말 가리기'], ['3', '③', '③ 대부분 가리기']].map(m => ib(`data-pkmode="${m[0]}"`, m[1], m[2], (PK.mode || '0') === m[0])).join('')}</span>`;
   const amendBtn = ib('data-pkamend="1"', '📝', '개정·신설 표시 ' + (S.showAmend ? '끄기' : '켜기'), S.showAmend);
   let root = document.createElement('div'); root.className = 'pk-art';
   if (kind === 'b'){
@@ -115,7 +116,8 @@ async function renderPeek(){
       linkifyNodes($$('.ln, td', root), () => law);
     }
   }
-  if (R.mode === '3') clozeIn(root);
+  const pm = PK.mode || '0'; $('#pk').dataset.pkrd = pm;
+  if (pm === '2' || pm === '3') clozeIn(root, +pm);
   box.innerHTML = ''; box.appendChild(root); box.scrollTop = 0;
 }
 /* 참조 링크는 어느 화면에서 눌러도 현재 화면을 떠나지 않고 패널로 연다 */
@@ -143,7 +145,7 @@ function setMode(v){
   if ($('#p-rev').classList.contains('on')) renderers.rev();
   updFab();
 }
-const MODE_SHORT = {'0':'원문', '1':'① 숫자·주체', '2':'② 동사까지', '3':'③ 조사만'};
+const MODE_SHORT = {'0':'원문', '1':'① 숫자·주체', '2':'② 핵심어+일부', '3':'③ 대부분'};
 function updFab(){
   let f = $('#fab-mode');
   if (!f){
@@ -193,7 +195,7 @@ renderers.rev = function(){
   { const w = lawsMissingNote(); if (w) $('#p-rev').insertAdjacentHTML('afterbegin', w); }
   const p = $('#p-rev');
   linkifyNodes($$('.rv-item .ln', p), el => { const l = el.closest('.rv-item').querySelector('.law'); return l ? l.textContent : '조직법'; });
-  if (R.mode === '3') clozeIn(p);
+  if (R.mode === '2' || R.mode === '3') clozeIn(p, +R.mode);
 };
 
 /* ── 회독 목차 사이드바 (가로 화면) ── */

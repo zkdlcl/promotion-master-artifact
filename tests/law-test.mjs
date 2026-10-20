@@ -90,8 +90,8 @@ if (bref) {
 for (const law of ["보수운영규정", "재무규정", "여비규정", "감사운영규정", "유관법령", "국제인도법", "국제적십자규약"]) {
   await page.evaluate((l) => { document.querySelector(`#r-law [data-law="${l}"]`).click(); }, law);
   const done = await waitFor(page, (l) => lawReady(l) && document.querySelectorAll("#r-body .art").length > 5 && R.law === l, 6000).catch(() => false);
-  const n = await page.evaluate(() => ({ arts: document.querySelectorAll("#r-body .art").length, ch: document.querySelectorAll("#r-body .ch-h").length, toc: document.querySelectorAll("#r-toc .toc-a").length, law: R.law }));
-  ok(`${law} 열림`, n.arts > 5 && n.toc === n.arts, JSON.stringify(n));
+  const n = await page.evaluate(() => ({ arts: document.querySelectorAll("#r-body .art").length, ch: document.querySelectorAll("#r-body .ch-h").length, toc: document.querySelectorAll("#r-toc .toc-a").length, byeol: document.querySelectorAll('#r-toc .toc-a[data-tj^="byeol-"]').length, law: R.law }));
+  ok(`${law} 열림`, n.arts > 5 && n.toc === n.arts + n.byeol, JSON.stringify(n));
 }
 await page.screenshot({ path: "law-ihl.png" });
 

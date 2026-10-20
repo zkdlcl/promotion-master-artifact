@@ -63,18 +63,47 @@ function btPick(){
   else if (BT.ord === 'weak'){ const k = a => { const r = btRec(artId(a)); return r ? r.last : -1; }; c = c.map((a, i) => [a, i]).sort((x, y) => k(x[0]) - k(y[0]) || x[1] - y[1]).map(x => x[0]); }
   return BT.cnt ? c.slice(0, BT.cnt) : c;
 }
-/* 조사·접속어만 남기고 낱말을 빈칸으로 (회독 ③ 모드와 같은 규칙, 임의의 요소 안에서) */
-function clozeIn(root){
-  $$('.ln, td', root).forEach(el => {
-    const w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT), nodes = [];
+/* 가리기 ②·③ 공통: 조사·어미는 남기고 낱말을 빈칸으로 만든다.
+   ② = 표시된 핵심어 + 숫자 + 나머지 낱말 약 30%   ③ = 숫자 + 나머지 낱말 약 65% (전부 가리지 않음)
+   별표 표 칸은 낱말마다 끊지 않고 칸 안의 한 줄('1. ' 같은 번호는 남김)을 한 빈칸으로 가린다. 머리 행은 그대로 둔다.
+   어떤 낱말을 가릴지는 글자로 정해지므로 다시 그려도 같은 자리가 가려진다. */
+const CK_KEEP = new Set(['경우','다음','해당','등','수','때','것','바','위','각호','같은','관한','대한','따른','의한','위한','따라','의하여','위하여','대하여','관하여','정하는','정한','하는','하고','하며','하거나','있는','없는','이러한','그밖에','밖의','그','이','다른','삭제','해당하','비고']);
+const CZ_RATE = {2: 30, 3: 65};
+function czHash(str){ let h = 2166136261; for (let i = 0; i < str.length; i++){ h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0) % 100; }
+function czSpan(txt){ const b = document.createElement('span'); b.className = 'b b3'; b.textContent = txt; return b; }
+function clozeIn(root, lv){
+  lv = +lv || 3; const rate = CZ_RATE[lv] || 65;
+  /* 표 칸: 줄 단위로 가린다 */
+  $$('td', root).forEach(td => {
+    const tr = td.parentElement, tb = tr && tr.parentElement;
+    if (tb && tb.firstElementChild === tr) return;
+    const w = document.createTreeWalker(td, NodeFilter.SHOW_TEXT), nodes = [];
     while (w.nextNode()){ const n = w.currentNode; if (!n.parentElement.closest('.b, .xr, .amend')) nodes.push(n); }
+    nodes.forEach((n, k) => {
+      const m = n.nodeValue.match(/^(\s*(?:\d+\.\s*|[가-하]\.\s*)?)(.*?)(\s*)$/s); if (!m || !/[가-힣0-9]/.test(m[2]) || /^삭제$/.test(m[2])) return;
+      const num = /\d/.test(m[2]);
+      if (!(num && lv === 3) && czHash(m[2] + '|' + k) >= (lv === 3 ? 75 : 40)) return;
+      const f = document.createDocumentFragment();
+      if (m[1]) f.appendChild(document.createTextNode(m[1]));
+      f.appendChild(czSpan(m[2])); if (m[3]) f.appendChild(document.createTextNode(m[3]));
+      n.parentNode.replaceChild(f, n);
+    });
+  });
+  /* 본문 줄: 낱말 단위 */
+  $$('.ln', root).forEach(el => {
+    if (el.closest('.chap') || /^\s*\[(별표|비고)/.test(el.textContent)) return;
+    const w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT), nodes = [];
+    while (w.nextNode()){ const n = w.currentNode; if (!n.parentElement.closest('.b, .xr, .amend, td')) nodes.push(n); }
+    let k = 0;
     nodes.forEach(n => {
       const t = n.nodeValue, re = /[가-힣A-Za-z0-9]+/g; let m, last = 0, hit = false; const out = document.createDocumentFragment();
       while ((m = re.exec(t))){
         if (/^\d+$/.test(m[0]) && /^[.)]/.test(t.slice(re.lastIndex, re.lastIndex + 1))) continue;
-        const sp = split3(m[0]); if (!sp) continue;
+        const sp = split3(m[0]); if (!sp || !sp[0] || CK_KEEP.has(sp[0])) continue;
+        const num = /\d/.test(sp[0]);
+        if (!num && (sp[0].length < 2 || czHash(sp[0] + '|' + (k++)) >= rate)) continue;
         out.appendChild(document.createTextNode(t.slice(last, m.index)));
-        const b = document.createElement('span'); b.className = 'b b3'; b.textContent = sp[0]; out.appendChild(b);
+        out.appendChild(czSpan(sp[0]));
         if (sp[1]) out.appendChild(document.createTextNode(sp[1]));
         last = re.lastIndex; hit = true;
       }

@@ -82,9 +82,10 @@ const y1 = await page.evaluate(() => scrollY);
 await page.evaluate(() => document.querySelector("[data-pkgo]").click()); await sleep(1100);
 const s4 = await state(page);
 ok("원문에서 보기: 패널 유지 + 본문 이동", s4.open && s4.split && (await page.evaluate((y) => scrollY !== y, y1)), `scroll ${y1}→${await page.evaluate(() => scrollY)}`);
-// 가리기 모드는 본문·패널 함께
+// 참조 패널의 가리기는 본문과 따로 (패널 안 버튼으로만 가림, 본문 가리기는 그대로)
+const rdBefore = await page.evaluate(() => document.body.dataset.rd);
 await page.evaluate(() => document.querySelector('[data-pkmode="1"]').click()); await sleep(400);
-ok("가리기 ①: 본문과 패널 동시 적용", await page.evaluate(() => document.body.dataset.rd === "1" && R.mode === "1" && document.querySelector('#r-chips [data-mode="1"]').getAttribute("aria-pressed") === "true"));
+ok("가리기 ①: 패널에만 적용(본문은 그대로)", await page.evaluate((r) => PK.mode === "1" && document.getElementById("pk").dataset.pkrd === "1" && document.body.dataset.rd === r && document.querySelector('[data-pkmode="1"]').getAttribute("aria-pressed") === "true", rdBefore));
 await page.evaluate(() => document.querySelector('[data-pkmode="0"]').click());
 // 닫기 → 원래대로
 await page.keyboard.press("Escape"); await sleep(400);

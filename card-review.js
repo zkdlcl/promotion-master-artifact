@@ -53,3 +53,33 @@ drawQuizHome=function(){
   hint.textContent='여러 과목을 함께 묻는 카드는 각 과목에 함께 표시됩니다.';
   if(detail)detail.before(hint);
 };
+
+/* ── 회독 +1 등으로 본문을 다시 그려도, 눌러서 열어 둔 빈칸(정답 확인)은 그대로 둔다.
+   같은 규정·같은 가리기 단계일 때만 되살린다 (단계가 바뀌면 빈칸 자리가 달라지므로). ── */
+function rdRevKeys(){
+  const body = $('#r-body'); if (!body) return null;
+  const keys = new Set(), cnt = {};
+  $$('.b', body).forEach(b => {
+    const a = b.closest('.art'), k = a ? a.id : '_x';
+    const i = cnt[k] = (cnt[k] || 0) + 1;
+    if (b.classList.contains('rev')) keys.add(k + '#' + i);
+  });
+  return keys;
+}
+function rdRevApply(keys){
+  const body = $('#r-body'); if (!body || !keys || !keys.size) return;
+  const cnt = {};
+  $$('.b', body).forEach(b => {
+    const a = b.closest('.art'), k = a ? a.id : '_x';
+    const i = cnt[k] = (cnt[k] || 0) + 1;
+    if (keys.has(k + '#' + i)) b.classList.add('rev');
+  });
+}
+const _drawReadRev = drawRead;
+drawRead = function(keepScroll){
+  const sig = R.law + '|' + R.topic + '|' + R.mode;
+  const keys = drawRead._sig === sig ? rdRevKeys() : null;
+  _drawReadRev(keepScroll);
+  drawRead._sig = sig;
+  rdRevApply(keys);
+};

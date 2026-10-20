@@ -544,8 +544,8 @@ renderers.read = function(){
       <select id="r-mode" aria-label="가리기">
         <option value="0">원문 그대로</option>
         <option value="1">① 숫자·주체 가리기</option>
-        <option value="2">② 승인·의결 동사까지 가리기</option>
-        <option value="3">③ 조사만 남기고 가리기</option>
+        <option value="2">② 핵심어 + 일부 낱말 가리기</option>
+        <option value="3">③ 대부분 가리기 (조사는 남김)</option>
       </select>
       <select id="r-jump" aria-label="장·절·조문 이동"></select>
       <span class="mute small" id="r-prog" style="width:100%"></span>
@@ -633,7 +633,7 @@ function drawRead(keepScroll){
   $('#r-note').hidden = R.law === '운영규정';
   $('#r-body').innerHTML = html;
   linkRefs();
-  if (R.mode === '3') cloze3();
+  if (R.mode === '2' || R.mode === '3') clozeIn($('#r-body'), +R.mode);
   if (keepScroll) window.scrollTo(0, y);
   updCrumb();
 }

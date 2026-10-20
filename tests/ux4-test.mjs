@@ -65,9 +65,10 @@ if (nested) {
   ok("← 뒤로 → 이전 조문", await page.evaluate(() => PK.stack.length === 1 && !document.getElementById("pk").hidden));
 } else res.push("SKIP  패널 안 중첩 참조 없음");
 // 패널 가리기·회독·이전/다음
+const R0 = await page.evaluate(() => R.mode), rdPk0 = await page.evaluate(() => document.body.dataset.rd);
 await click('[data-pkmode="1"]'); await sleep(300);
-const md = await page.evaluate(() => ({ R: R.mode, rd: document.body.dataset.rd, pressed: document.querySelector('[data-pkmode="1"]').getAttribute("aria-pressed"), blanks: document.querySelectorAll("#pk-body .b1").length, hidden: [...document.querySelectorAll("#pk-body .b1")].filter((b) => getComputedStyle(b).color === "rgba(0, 0, 0, 0)").length }));
-ok("패널 ① 가리기: 숫자·주체 가려짐(공통 모드)", md.R === "1" && md.rd === "1" && md.pressed === "true" && (md.blanks === 0 || md.hidden === md.blanks), JSON.stringify(md));
+const md = await page.evaluate(() => ({ R: R.mode, rd: document.body.dataset.rd, pk: PK.mode, pkrd: document.getElementById("pk").dataset.pkrd, pressed: document.querySelector('[data-pkmode="1"]').getAttribute("aria-pressed"), blanks: document.querySelectorAll("#pk-body .b1").length, hidden: [...document.querySelectorAll("#pk-body .b1")].filter((b) => getComputedStyle(b).color === "rgba(0, 0, 0, 0)").length }));
+ok("패널 ① 가리기: 숫자·주체 가려짐(패널에만 적용, 본문은 그대로)", md.R === R0 && md.rd === rdPk0 && md.pk === "1" && md.pkrd === "1" && md.pressed === "true" && (md.blanks === 0 || md.hidden === md.blanks), JSON.stringify(md));
 const nb = await page.evaluate(() => { const b = document.querySelector('[data-pknb][data-dir="next"]'); return { dis: b.disabled, t: b.textContent.trim() }; });
 const t0 = await page.evaluate(() => document.getElementById("pk-ti").textContent);
 if (!nb.dis) { await click('[data-pknb][data-dir="next"]'); }

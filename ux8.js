@@ -5,10 +5,15 @@
 function readRound(list){ return list.length ? Math.min(...list.map(a => S.reads[artId(a)] || 0)) + 1 : 1; }
 resumeTarget = function(){
   const c = candArts(); if (!c.length) return null;
-  const m = readRound(c) - 1, last = S.rd && S.rd.last && S.rd.last[R.law];
-  const i = Math.max(0, c.findIndex(a => artId(a) === last));
-  const un = a => (S.reads[artId(a)] || 0) <= m;
-  return c.slice(i).find(un) || c.find(un) || null;
+  const cnt = a => S.reads[artId(a)] || 0;
+  const m = readRound(c) - 1, mx = Math.max(...c.map(cnt));
+  const un = a => cnt(a) <= m;
+  /* 범위 안에 회독 수가 섞여 있으면(중간에 2회독이 끼어 있어도) 읽어야 할 범위의 맨 처음으로 간다 */
+  if (mx > m) return c.find(un) || null;
+  /* 회독 수가 모두 같으면 마지막으로 읽은 조문의 다음으로 간다 (끝이면 처음으로) */
+  const last = S.rd && S.rd.last && S.rd.last[R.law];
+  const i = c.findIndex(a => artId(a) === last);
+  return c.slice(i + 1).find(un) || c.find(un) || null;
 };
 
 /* ── 탭을 옮겨도 진행 중인 복습 카드·뻥뚫·기출 화면은 다시 그리지 않는다 (입력·정답 공개·무작위 빈칸 유지) ── */
@@ -183,6 +188,8 @@ function goalNav(key){
   if (/📊/.test(t) || (/표/.test(t) && !/별표/.test(t))) return showTab('table');
   if (/💬/.test(t)) return showTab('ask');
   if (/🔬/.test(t)) return showTab('lab');
+  /* '별표 제1~6호'처럼 '조' 없이 별표만 있는 목표는 조문(제1조)이 아니라 별표로 간다 */
+  if (!/제\s*\d+조/.test(t) && (m = t.match(/별표\s*제?(\d+)/))) return toRead('b|' + law + ':' + m[1]);
   if ((m = t.match(/제(\d+)(?:조의(\d+))?(?:[~·]\d+)*조?/))) return toRead('a|' + law + ':' + m[1] + (m[2] ? '의' + m[2] : ''));
   if ((m = t.match(/별표\s*제?(\d+)/))) return toRead('b|' + law + ':' + m[1]);
   if (/기출|문항/.test(t)) return showTab('exam');
@@ -190,11 +197,14 @@ function goalNav(key){
 }
 $('#p-today').addEventListener('click', e => { const b = e.target.closest('[data-goal]'); if (b) goalNav(b.dataset.goal); });
 
+/* ── 스터디 3주차 문제 묶음(전권능) ── */
+if (!XG.some(g => g[0] === "st3")) XG.splice(2, 0, ["st3", "📕 스터디 3주차 · 운영규정 6~7장 문제"]);
+
 /* ── 헤더 통합 검색 (탭 목록의 검색 대신) ── */
 (function(){
   const hd = $('.hd'); if (!hd || $('#gsearch')) return;
   const wrap = document.createElement('label'); wrap.className = 'gs';
-  wrap.innerHTML = '<span class="gs-ic" aria-hidden="true">🔍</span><input id="gsearch" type="search" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder=" " aria-label="통합 검색">';
+  wrap.innerHTML = '<span class="gs-ic" aria-hidden="true">🔍</span><input id="gsearch" type="search" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="통합검색" aria-label="통합 검색">';
   hd.querySelector('h1').after(wrap);
   const inp = $('#gsearch'); let tm = 0;
   const run = () => {
@@ -262,6 +272,3 @@ drawX = function(){
   const law = LAW_ALIAS.get(String(e.area || '').replace(/\s+/g, '')) || null;
   linkifyNodes([ex], () => law);
 };
-
-/* ── 스터디 3주차 문제 묶음(전권능) ── */
-if (!XG.some(g => g[0] === "st3")) XG.splice(2, 0, ["st3", "📕 스터디 3주차 · 운영규정 6~7장 문제"]);

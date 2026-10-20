@@ -59,6 +59,8 @@ def check(db=None, A=None, exam=None):
             if not x.get(k): errs.append(f'{tag}: {k} 없음')
         if x.get('kind') == 'ox' and x.get('a') not in ('O', 'X'): errs.append(f'{tag}: OX 답 {x.get("a")}')
         errs += _quote_errs(tag, x.get('art'), x.get('quote'), x.get('trap'), x.get('q', ''), A)
+    import cases   # 사례형·원문 빈칸 (kb/study/cases.py)
+    errs += cases.check(A)
     miss = [e['id'] for e in exam if e['grp'] == 'st2' and e['id'] not in seen]
     if miss: errs.append(f'답지 기록 없는 스터디 문항: {miss}')
     return errs
@@ -87,6 +89,8 @@ def apply(exam, db=None):
         idx = [n for n, e in enumerate(exam) if e['grp'] == x['grp']]
         k = max(idx) + 1 if idx else len(exam)   # 새 묶음(st3 …)은 맨 뒤에서 시작
         exam.insert(k, {f: x[f] for f in ('id', 'grp', 'no', 'kind', 'area', 'q', 'a', 'ex')})
+    import cases
+    exam.extend(cases.build()[0])   # 사례형 묶음은 맨 뒤에 붙인다
     return fix
 
 

@@ -1,0 +1,12 @@
+
+/* ── 사례형·원문 빈칸 ── */
+.bl-q{line-height:2.6;font-size:1.06rem}
+.bl-in{font:inherit;font-size:1rem;text-indent:0;padding:2px 8px;margin:0 2px;border:0;border-bottom:2px solid var(--ink);background:var(--soft);color:var(--ink);border-radius:6px 6px 0 0;text-align:center;min-width:3em;max-width:100%;letter-spacing:.08em}
+.bl-in::placeholder{color:var(--mute);letter-spacing:.14em;opacity:1}
+.bl-in:focus{outline:2px solid var(--ink);outline-offset:1px}
+.bl-ok{font-weight:700;color:var(--ok);background:var(--ok-bg);border-radius:4px;padding:0 5px}
+.bl-no{color:var(--red-d);background:var(--red-bg);border-radius:4px;padding:0 5px;text-decoration:line-through}
+.bl-fix{font-weight:700;color:var(--ok);background:var(--ok-bg);border-radius:4px;padding:0 5px;margin-left:4px}
+.bl-cite{margin-top:10px}
+.bl-diff{margin:6px 0 4px 1.1em;padding:0}
+.bl-diff li{margin:.2em 0}

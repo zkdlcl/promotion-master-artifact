@@ -104,7 +104,7 @@ drawXHome = function(){
   <h2>기출·오답 문제 <span class="mute small">푼 ${Object.keys(S.ex || {}).length} · 오답노트 ${wr}</span></h2>
   <div class="cs-box">
     <div class="cs-row"><span class="cs-lab">방식</span><div class="cs">${[['order', '번호 순서'], ['rand', '무작위'], ['new', '안 푼 문제만']].map(m => chip('data-xmode', m[0], m[1], X.mode === m[0])).join('')}</div></div>
-    <div class="cs-row"><span class="cs-lab">유형</span><div class="cs">${[['', '전체'], ['mc', '객관식·OX'], ['sa', '주관식']].map(m => chip('data-xkind', m[0], m[1], (X.kind || '') === m[0])).join('')}</div></div>
+    <div class="cs-row"><span class="cs-lab">유형</span><div class="cs">${[['', '전체'], ['mc', '객관식·OX'], ['sa', '주관식'], ['bl', '빈칸']].map(m => chip('data-xkind', m[0], m[1], (X.kind || '') === m[0])).join('')}</div></div>
     <div class="cs-row"><span class="cs-lab">모아 풀기</span><div class="cs">${[[10, '10문제'], [20, '20문제'], [50, '50문제'], [0, '전부']].map(m => chip('data-xlim', m[0], m[1], X.limit === m[0])).join('')}</div></div>
   </div>
   <p class="small mute" style="margin:8px 0">번호를 누르면 바로 채점되고, 틀린 문제는 오답노트에 쌓입니다. 오답노트에서 다시 맞히면 빠집니다.</p>

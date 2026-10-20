@@ -3,6 +3,17 @@
 claude.ai 아티팩트 **승진고시 마스터**(https://claude.ai/artifact/XmAgPN8DtD9eoujJX8naXs)의 소스·데이터·테스트 백업입니다.
 학습 기록은 아티팩트 DB(`state/progress`)와 브라우저에 있고, 이 저장소에는 **페이지와 데이터**만 있습니다.
 
+## Claude · Codex 같이 쓸 때 (필독)
+같은 폴더(`artifact-build`)를 Claude Code 와 Codex 가 번갈아 씁니다. 한쪽의 커밋 안 한 작업이 다른 쪽 때문에 사라지거나, 게시본과 소스가 어긋나지 않도록 아래를 지킵니다.
+
+1. **시작할 때**: `git pull --ff-only` 로 최신을 받고 `git status` 로 상대가 커밋 안 한 변경이 없는지 봅니다. 있으면 먼저 그 변경을 커밋(또는 상대에게 확인)하고 시작합니다.
+2. **끝낼 때**: **소스(`*.js`·`*.css`·`*.py`·데이터)까지** 커밋하고 푸시합니다. `dist/` 만 커밋하면 다음 세션이 같은 결과를 다시 빌드할 수 없습니다(실제로 게시 v35 의 소스가 저장소에 남지 않아, 이후 게시를 게시본 위에 덧입히는 방식으로 해야 했습니다).
+3. **되돌리기 전에 확인**: `git restore`·`git checkout -- .`·`git stash`·`git reset` 은 상대의 커밋 안 한 작업까지 지웁니다. 실행 전에 `git status` 로 내 변경만인지 확인합니다.
+4. **게시는 Claude 만** 합니다. Artifact 도구는 Claude 쪽에만 있습니다(Codex 에서는 게시 완료를 확인할 수 없음). Codex 는 빌드·검증·커밋까지만 하고 "게시 대기"로 인계합니다.
+5. **게시 전**: Claude 는 게시본을 읽어 로컬 빌드와 비교하고, `git fetch` 로 새 커밋도 확인합니다. 게시본에만 있는 변경(다른 세션이 올린 것)이 있으면 로컬 빌드를 그대로 올리지 않고, 게시본 위에 내 변경만 덧입힙니다.
+6. **게시 후**: 올린 본문을 `dist/orgmaster.html` 로 복사하고, 학습 기록을 읽기만 해서 `backup/progress.json` 에 백업한 뒤 소스와 함께 커밋·푸시합니다.
+7. **자동 커밋**: Claude 의 Stop 훅(`.claude/hooks/auto-commit.sh`)은 `git add -A` 로 **상대가 커밋 안 한 변경까지** 한꺼번에 커밋하고, 푸시는 하지 않습니다. Codex 작업 중에 Claude 세션이 끝나면 섞일 수 있으니 1번을 지킵니다.
+
 ## 구조
 | 경로 | 내용 |
 |---|---|
@@ -17,7 +28,7 @@ claude.ai 아티팩트 **승진고시 마스터**(https://claude.ai/artifact/XmA
 | `backup/progress.json` | 학습 기록(아티팩트 DB `state/progress`) 백업 — 복원용 |
 | `CLAUDE.md`, `.claude/skills/` | Claude 작업 규칙과 스킬: `exam-kb`(카드·문제·검수), `kb-annotate`(DB 기록), `artifact-release`(게시·백업), `artifact-restore`(복원) |
 | `build_artifact.py` | 기준 페이지 + 조각 → `orgmaster.html`(게시용 본문) 과 테스트용 `site/index.html` |
-| `dist/orgmaster.html` | **게시한 최종 페이지** (버전 35 시점 (2026-10-19 게시)). 빌드 없이도 이 파일로 복구할 수 있습니다. |
+| `dist/orgmaster.html` | **게시한 최종 페이지** (게시 v37, 2026-10-20). 빌드 없이도 이 파일로 복구할 수 있습니다. 단 v35 이후 일부 변경(가리기 ②③·별표 이동·참조 패널 가리기·빈칸 유지·검색창 항상 펼침)의 소스가 저장소에 없어, 이 저장소만으로 다시 빌드하면 그 부분이 빠집니다(아래 알려진 한계). |
 | `site/data/laws/*.json` | 규정 8종 본문 (처음 열 때 불러옴) — `convert_regs.py` 로 생성 |
 | `site/data/quiz/*.json` | 기출 12 + 스터디 문제 98 묶음 — `quiz/convert_quiz.py` 로 생성 후 후처리(아래) |
 | `site/*.json` | 규정 목차, 문제 목차, 기록 이전표, 새 복습 카드 |
@@ -53,7 +64,7 @@ Claude 아티팩트 주소는 별도의 운영 게시 대상이다. Git push나 
 현재 연결된 도구에는 Artifact read/publish가 없어 이번 변경의 **아티팩트 운영 게시 완료는 확인하지 못했다**.
 게시 도구가 연결되면 `.claude/skills/artifact-release/SKILL.md` 절차로 기존 본문 비교,
 게시, 운영 화면 확인, 학습 기록 읽기 백업까지 완료해야 한다.
-`dist/orgmaster.html`은 실제 게시가 확인된 버전 34를 계속 보존한다.
+`dist/orgmaster.html`은 마지막으로 실제 게시한 본문(게시 v37)이다.
 
 ```powershell
 python -X utf8 build_artifact.py
@@ -145,6 +156,7 @@ Artifact 도구로 `orgmaster.html` 을 같은 URL에 게시하고, `data/laws/*
 - 문제 목차의 `file` 경로를 `data/quiz/<id>.json` 으로 통일
 
 ## 알려진 한계 / 다음 할 일
+- **소스 누락(2026-10-20 확인)**: 게시 v35 에 들어간 변경의 소스가 저장소에 없다 — 회독·참조 패널 가리기 ②(핵심어+일부)·③(대부분), 별표만 있는 목표의 별표 이동, 참조 패널은 기본 원문(패널 안 버튼으로만 가리기), 정답 확인한 빈칸 유지(`rdRevKeys`), 검색창 항상 펼침(`ux8.css`). 게시본(`dist/orgmaster.html`)과 로컬 빌드의 차이로 복원할 수 있다. 그 전까지 게시는 게시본 위에 변경만 덧입힌다.
 - 게시된 뷰어에서 규정·문제 파일 불러오기는 사용자가 확인함(2026-10-17, 정상).
 - 조직법·정관·직원 운영규정 3종의 복습 카드(366장)는 손으로 만든 것이고, 새 규정 7종 253장은 빈칸에서 자동 생성한 것입니다(버전 25에서 306 → 253장으로 다듬음). 180자가 넘는 긴 질문 카드는 일부러 그대로 두었습니다.
 - 2027년 개정 규정: 🆕 개정 탭의 "개정 전·후 비교"에 JSON 을 붙여 넣는 방식(프롬프트는 탭에서 복사). 데이터가 오면 시험해 볼 것.

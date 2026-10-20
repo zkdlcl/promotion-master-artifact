@@ -84,7 +84,8 @@ def apply(exam, db=None):
             fix[r['id']] = [_ok(e, r['prev']), _ok(e, r['a'])]
         e['a'], e['ex'] = r['a'], ex
     for x in db.get('add', []):   # 같은 묶음의 맨 뒤에 넣는다
-        k = max(n for n, e in enumerate(exam) if e['grp'] == x['grp']) + 1
+        idx = [n for n, e in enumerate(exam) if e['grp'] == x['grp']]
+        k = max(idx) + 1 if idx else len(exam)   # 새 묶음(st3 …)은 맨 뒤에서 시작
         exam.insert(k, {f: x[f] for f in ('id', 'grp', 'no', 'kind', 'area', 'q', 'a', 'ex')})
     return fix
 

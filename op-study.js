@@ -143,7 +143,7 @@ const OPStudy = (() => {
     const first=document.querySelector('#p-today .td-r input[data-chk]'),card=first&&first.closest('.card');
     if(!card || card.querySelector('[data-om-launch]'))return;
     const row=document.createElement('div');row.className='om-task';
-    row.innerHTML=`<span class="om-task-icon" aria-hidden="true">⌘</span><div><span class="om-eyebrow">시작 전에 · 선택 안내</span><button type="button" data-om-launch>${esc(scopes.map(s=>s.law).join('·'))} 큰 틀 먼저 보기 ↗</button><small>구조도만 가볍게 보고, 아래 할 일을 이어가세요.</small></div>`;
+    row.innerHTML=`<span class="om-task-icon" aria-hidden="true">🗺</span><div><span class="om-eyebrow">시작 전에 · 선택 안내</span><button type="button" data-om-launch>${esc(scopes.map(s=>s.law).join('·'))} 큰 틀 먼저 보기 ↗</button><small>구조도만 가볍게 보고, 아래 할 일을 이어가세요.</small></div>`;
     card.insertBefore(row,first.closest('.goal, .check'));
   }
   document.addEventListener('click',e=>{

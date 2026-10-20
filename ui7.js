@@ -44,6 +44,7 @@ const UI7 = (() => {
     undo: '<path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>',
     sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
     moon: '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>',
+    frame: '<rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18M9 21V9"/>',
   };
   const svg = n => `<svg viewBox="0 0 24 24" aria-hidden="true">${P[n]}</svg>`;
   // 이모지 → 아이콘 (답 표시 기호 ◯ ✕ ✓ 와 화살표는 글자 그대로 둔다)
@@ -51,7 +52,7 @@ const UI7 = (() => {
     '🎯':'target','📖':'book','🕳':'blank','🧠':'cards','🗂':'exam','🆕':'diff','🔍':'search','📊':'chart','🔬':'flask','🧪':'flask',
     '💬':'chat','🔤':'type','👁':'eye','🙈':'eyeoff','📝':'pen','✏':'pen','✍':'pen','🗓':'cal','📅':'cal','📕':'bookx','📚':'books',
     '▶':'play','✅':'ok','❌':'no','☁':'cloud','⚠':'alert','👏':'ok','⏳':'hour','💡':'bulb','🧑':'user','📌':'pin','📈':'trend',
-    '🏷':'tag','🎓':'cap','📥':'inbox','📋':'list','🔢':'hash','👆':'tap','⏰':'alarm','🤝':'users','➖':'minus','↩':'undo',
+    '🏷':'tag','🎓':'cap','📥':'inbox','📋':'list','🔢':'hash','👆':'tap','⏰':'alarm','🤝':'users','➖':'minus','↩':'undo','🗺':'frame',
   };
   const DOT = {'🔴':'var(--red)','🟢':'#30a46c','🟡':'#f5d90a'};
   const keys = Object.keys(MAP).concat(Object.keys(DOT)).sort((a, b) => b.length - a.length).map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));

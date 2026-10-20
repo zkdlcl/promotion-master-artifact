@@ -1,5 +1,6 @@
 /* 목표 목록 안의 작은 입구와 읽기 전 구조도 */
 .om-task{display:flex;gap:12px;padding:15px 12px;margin:12px 0;border:1px solid var(--line);border-radius:12px;background:var(--soft);min-width:0}
+.om-task-icon .ic{width:18px;height:18px;margin:0}
 .om-task-icon{display:grid;place-items:center;width:34px;height:34px;border:1px solid var(--line2);border-radius:10px;flex-shrink:0;color:var(--mute);font-size:1.4rem;background:var(--card)}
 .om-task>div{min-width:0}.om-task button{display:block;background:none;border:0;color:var(--ink);font:inherit;font-weight:650;text-align:left;padding:3px 0;line-height:1.6;cursor:pointer;overflow-wrap:anywhere}.om-task small{display:block;color:var(--mute);font-size:.77rem;line-height:1.6}
 .om-eyebrow{display:block;color:var(--mute);font-size:.7rem;letter-spacing:.07em;line-height:1.7}

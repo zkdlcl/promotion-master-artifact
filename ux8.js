@@ -262,3 +262,6 @@ drawX = function(){
   const law = LAW_ALIAS.get(String(e.area || '').replace(/\s+/g, '')) || null;
   linkifyNodes([ex], () => law);
 };
+
+/* ── 스터디 3주차 문제 묶음(전권능) ── */
+if (!XG.some(g => g[0] === "st3")) XG.splice(2, 0, ["st3", "📕 스터디 3주차 · 운영규정 6~7장 문제"]);

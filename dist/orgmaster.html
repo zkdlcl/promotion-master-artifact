@@ -2244,7 +2244,7 @@ function openArtSheet(){
   const loose = [...jump.children].filter(o => o.tagName === 'OPTION' && o.value.startsWith('a-'));
   if (loose.length) body += `<div class="cs-gh">조문</div><div class="cs-grid">${btns(loose)}</div>`;
   [...jump.querySelectorAll('optgroup')].forEach(g => {
-    const arts = [...g.querySelectorAll('option')].filter(o => o.value.startsWith('a-'));
+    const arts = [...g.querySelectorAll('option')].filter(o => o.value.startsWith('a-') || o.value.startsWith('byeol-'));
     if (arts.length) body += `<div class="cs-gh">${esc(g.label)}</div><div class="cs-grid">${btns(arts)}</div>`;
   });
   const o = document.createElement('div'); o.className = 'ov';
@@ -2882,6 +2882,19 @@ renderers.rev = function(){
 };
 
 /* ── 회독 목차 사이드바 (가로 화면) ── */
+function syncAppendixJump(){
+  const jump = $('#r-jump'); if (!jump) return;
+  const headings = $$('#r-body .chap[id^="byeol-"]');
+  if (!headings.length || jump.querySelector('[data-appendices]')) return;
+  const group = document.createElement('optgroup'); group.label = '별표'; group.dataset.appendices = '1';
+  headings.forEach(h => {
+    const label = h.cloneNode(true); $$('.amend', label).forEach(a => a.remove());
+    let title = label.textContent.trim();
+    if (title.endsWith(']') && h.nextElementSibling?.matches('.ln')) title += ' ' + h.nextElementSibling.textContent.trim();
+    const option = document.createElement('option'); option.value = h.id; option.textContent = title; group.appendChild(option);
+  });
+  jump.appendChild(group);
+}
 function syncToc(){
   const body = $('#r-body'); if (!body) return;
   let wrap = $('.rd-wrap');
@@ -2894,12 +2907,13 @@ function syncToc(){
     aside.addEventListener('click', e => { const b = e.target.closest('[data-tj]'); if (!b) return; const j = $('#r-jump'); j.value = b.dataset.tj; j.dispatchEvent(new Event('change')); });
   }
   const jump = $('#r-jump'); let h = '';
-  const item = o => { const id = o.value.slice(2), n = S.reads[id] || 0; return `<button class="toc-a" data-tj="${esc(o.value)}" data-id="${esc(id)}"><span class="ck">${n > 1 ? n : n ? '✓' : ''}</span><span>${esc(o.textContent.trim())}</span></button>`; };
+  const navigable = o => o.value.startsWith('a-') || o.value.startsWith('byeol-');
+  const item = o => { const id = o.value.slice(2), n = o.value.startsWith('a-') ? S.reads[id] || 0 : 0; return `<button class="toc-a" data-tj="${esc(o.value)}" data-id="${esc(id)}"><span class="ck">${n > 1 ? n : n ? '✓' : ''}</span><span>${esc(o.textContent.trim())}</span></button>`; };
   [...jump.children].forEach(c => {
-    if (c.tagName === 'OPTION' && c.value.startsWith('a-')) h += item(c);
+    if (c.tagName === 'OPTION' && navigable(c)) h += item(c);
     if (c.tagName === 'OPTGROUP'){
       const first = c.querySelector('option');
-      h += `<button class="toc-ch" data-tj="${esc(first ? first.value : '')}">${esc(c.label)}</button>` + [...c.querySelectorAll('option')].filter(o => o.value.startsWith('a-')).map(item).join('');
+      h += `<button class="toc-ch" data-tj="${esc(first ? first.value : '')}">${esc(c.label)}</button>` + [...c.querySelectorAll('option')].filter(navigable).map(item).join('');
     }
   });
   $('#r-toc').innerHTML = h || '<p class="small mute" style="padding:8px">목차가 없습니다.</p>';
@@ -2909,16 +2923,16 @@ let tocRaf = 0;
 function tocSpy(){
   tocRaf = 0; const aside = $('#r-toc'); if (!aside || !aside.offsetParent) return;
   const top = (parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 100) + 40;
-  let cur = null; for (const a of $$('#r-body .art')){ if (a.getBoundingClientRect().top > top) break; cur = a; }
+  let cur = null; for (const a of $$('#r-body .art, #r-body .chap[id^="byeol-"]')){ if (a.getBoundingClientRect().top > top) break; cur = a; }
   $$('#r-toc .toc-a.on').forEach(b => b.classList.remove('on'));
   if (!cur) return;
-  const b = $('#r-toc [data-id="' + cur.id.slice(2).replace(/"/g, '\\"') + '"]'); if (!b) return;
+  const b = $$('#r-toc .toc-a').find(b => b.dataset.tj === cur.id); if (!b) return;
   b.classList.add('on');
   const bt = b.offsetTop, bh = b.offsetHeight; if (bt < aside.scrollTop + 8) aside.scrollTop = bt - 40; else if (bt + bh > aside.scrollTop + aside.clientHeight - 8) aside.scrollTop = bt + bh - aside.clientHeight + 40;
 }
 addEventListener('scroll', () => { if (!tocRaf && $('#p-read').classList.contains('on')) tocRaf = requestAnimationFrame(tocSpy); }, {passive: true});
 const _syncChips = syncChips;
-syncChips = function(){ _syncChips(); try { syncToc(); } catch(e){ console.warn(e); } };
+syncChips = function(){ syncAppendixJump(); _syncChips(); try { syncToc(); } catch(e){ console.warn(e); } };
 
 /* ── 오늘 탭: 가로 화면에서 2단 (왼쪽: 일정·추천·밀린 일 / 오른쪽: 오늘 할 일) ── */
 function todayCols(){
@@ -3878,3 +3892,4 @@ fixPad();
 showTab(location.hash.slice(1) || (()=>{ try { return localStorage.getItem('orgmaster.tab'); } catch(e){ return ''; } })() || 'today');
 UI7.start();
 </script>
+

@@ -60,7 +60,7 @@ function openArtSheet(){
   const loose = [...jump.children].filter(o => o.tagName === 'OPTION' && o.value.startsWith('a-'));
   if (loose.length) body += `<div class="cs-gh">조문</div><div class="cs-grid">${btns(loose)}</div>`;
   [...jump.querySelectorAll('optgroup')].forEach(g => {
-    const arts = [...g.querySelectorAll('option')].filter(o => o.value.startsWith('a-'));
+    const arts = [...g.querySelectorAll('option')].filter(o => o.value.startsWith('a-') || o.value.startsWith('byeol-'));
     if (arts.length) body += `<div class="cs-gh">${esc(g.label)}</div><div class="cs-grid">${btns(arts)}</div>`;
   });
   const o = document.createElement('div'); o.className = 'ov';

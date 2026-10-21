@@ -14,6 +14,18 @@ claude.ai 아티팩트 **승진고시 마스터**(https://claude.ai/artifact/XmA
 6. **게시 후**: 올린 본문을 `dist/orgmaster.html` 로 복사하고, 학습 기록을 읽기만 해서 `backup/progress.json` 에 백업한 뒤 소스와 함께 커밋·푸시합니다.
 7. **자동 커밋**: Claude 의 Stop 훅(`.claude/hooks/auto-commit.sh`)은 `git add -A` 로 **상대가 커밋 안 한 변경까지** 한꺼번에 커밋하고, 푸시는 하지 않습니다. Codex 작업 중에 Claude 세션이 끝나면 섞일 수 있으니 1번을 지킵니다.
 
+## 컨텍스트 보호 하네스 (Claude · Codex 공용)
+기출 DB 가 큰 파일이라 통독하면 컨텍스트가 찬다. 그래서 DB 는 **질의 도구로만** 읽는다.
+
+| 경로 | 역할 |
+|---|---|
+| `tools/kbq.py` | `digest`·`item`·`art`·`find`·`err`·`ans` 조회(출력 약 5000자, `--offset` 이어보기), `checkpoint` 로 `kb/진행상황.md` '## 세션 메모'에 한 줄(최근 30줄, BOM·줄바꿈 보존) |
+| `tools/ctx_guard.py` | 훅 하나로 4역할: `pretool`(큰 DB 통독 차단, offset+limit≤400줄만 허용, 줄바꿈 없는 JSON 은 불가, `CTX_GUARD=off` 로 해제) · `prompt`(대화 기록 크기로 사용률 추정, 50%·70% 한 번씩 알림) · `resume`(진행상황 '다음 순서'+세션 메모 1500자 주입) · `precompact`(git 상태를 `.git/study-harness/ctx-handoff.md` 에 저장) |
+| `.claude/settings.json` · `.codex/hooks.json` | 위 훅 연결. 기존 구조도 훅(`study_harness.py`)은 그대로 두고 나란히 추가. Codex 는 처음 한 번 `/hooks` 신뢰 필요 |
+| `AGENTS.md` | Codex 용 요약. 스킬 원본은 `.claude/skills` 한 벌 |
+
+한계: 훅은 `/clear`·`/compact` 를 대신 칠 수 없다(차단·알림·기록·재주입만). 사용률은 추정치. 검사: `python -X utf8 -m unittest discover -s tests -p ctx_guard_test.py`.
+
 ## 구조
 | 경로 | 내용 |
 |---|---|
@@ -28,7 +40,7 @@ claude.ai 아티팩트 **승진고시 마스터**(https://claude.ai/artifact/XmA
 | `backup/progress.json` | 학습 기록(아티팩트 DB `state/progress`) 백업 — 복원용 |
 | `CLAUDE.md`, `.claude/skills/` | Claude 작업 규칙과 스킬: `exam-kb`(카드·문제·검수), `kb-annotate`(DB 기록), `artifact-release`(게시·백업), `artifact-restore`(복원) |
 | `build_artifact.py` | 기준 페이지 + 조각 → `orgmaster.html`(게시용 본문) 과 테스트용 `site/index.html` |
-| `dist/orgmaster.html` | **게시한 최종 페이지** (게시 v37, 2026-10-20). 빌드 없이도 이 파일로 복구할 수 있습니다. 소스에서 다시 빌드한 결과와 같습니다(데이터 JSON 의 키 순서만 빌드마다 달라질 수 있음). |
+| `dist/orgmaster.html` | **게시한 최종 페이지** (게시 v39, 2026-10-21). 빌드 없이도 이 파일로 복구할 수 있습니다. 소스에서 다시 빌드한 결과와 같습니다(데이터 JSON 의 키 순서만 빌드마다 달라질 수 있음). |
 | `site/data/laws/*.json` | 규정 8종 본문 (처음 열 때 불러옴) — `convert_regs.py` 로 생성 |
 | `site/data/quiz/*.json` | 기출 12 + 스터디 문제 98 묶음 — `quiz/convert_quiz.py` 로 생성 후 후처리(아래) |
 | `site/*.json` | 규정 목차, 문제 목차, 기록 이전표, 새 복습 카드 |

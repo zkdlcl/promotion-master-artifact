@@ -17,6 +17,8 @@ try {
  await p.screenshot({path:'tests/op-map-today.png',fullPage:true});
  await click('[data-om-launch]');
  assert.ok(await p.$('#op-map[open]'));
+ assert.equal(await p.$$eval('.om-rng',es => es.length),2,'오늘 범위(6·7장)가 먼저 열림');
+ await p.$eval('.om-nav [data-om-view="0"]',e => e.click());
  assert.equal(await p.$$eval('.om-chapter',es => es.length),7);
  assert.equal(await p.$$eval('.om-focus',es => es.length),2);
  assert.equal(await p.$$eval('#op-map input,#op-map textarea',es => es.length),0);

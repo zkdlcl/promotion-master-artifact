@@ -15,6 +15,7 @@ try {
   let total=0;
   for(const law of subjects){
     await page.evaluate(law=>OPStudy.launch(law),law);
+    await page.$eval('.om-nav [data-om-view="0"]',e=>e.click());
     const result=await page.evaluate(law=>{
       const m=OPStudy.model(law), expected=D.articles.filter(a=>a.law===law&&a.type==='a');
       return {count:m.count,expected:expected.map(a=>[artId(a),a.title]),actual:m.chapters.flatMap(c=>c.groups.flatMap(g=>g.arts.map(a=>[artId(a),a.title]))),chapters:m.chapters.map(c=>({n:c.n,title:c.title,groups:c.groups.map(g=>g.title)}))};

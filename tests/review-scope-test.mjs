@@ -46,7 +46,7 @@ try {
   const session=await p.evaluate(()=>Q.queue.map(c=>c.id));
   assert.equal(session.length,74);assert.equal(new Set(session).size,74);
   await p.$eval('[data-om-global]',e=>e.click());
-  await p.waitForSelector('.om-chapter');
+  await p.waitForSelector('.om-nav');
   await p.$eval('[data-om-law="국제인도법"]',e=>e.click());
   await p.waitForFunction(()=>document.getElementById('om-title').textContent.startsWith('국제인도법')&&!document.querySelector('.om-loading'));
   await p.$eval('[data-om-close]',e=>e.click());
@@ -55,7 +55,7 @@ try {
   await p.evaluate(()=>{R.law='정관';R.topic='0';showTab('read');});
   assert.equal(await p.$('[data-om-read-map]'),null);
   await p.$eval('[data-om-global]',e=>e.click());
-  await p.waitForSelector('.om-chapter');
+  await p.waitForSelector('.om-nav');
   await p.$eval('[data-om-close]',e=>e.click());
   assert.equal(await p.evaluate(()=>R.law),'정관');
   console.log('PASS 모든 탭의 구조도 메뉴·회독 중복 버튼 없음·카드 입력과 세션 유지');

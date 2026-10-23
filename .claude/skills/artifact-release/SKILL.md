@@ -32,5 +32,7 @@ for t in *-test.mjs; do node $t | grep -v ^PASS; done   # PASS 말고 나오는 
 ## 4. 학습 기록 백업 (읽기만)
 `ArtifactData get` (collection `state`, doc `progress`) → `backup/progress.json` 에 그대로 저장. **절대 set/update 하지 않는다.**
 
-## 5. 마무리
+## 5. 마무리 (SVN 식: 묻지 않고 끝까지)
+단일 작업자라 테스트가 통과하면 게시·백업·커밋·**push 까지 확인 없이 이어서** 한다. `git add -A` 로 전부 넣는다(테스트 캡처 png 는 `.gitignore` 가 걸러 준다). 강제 push·이력 삭제만 먼저 묻는다.
+
 `cp orgmaster.html dist/orgmaster.html`, README 의 게시 버전 갱신, 커밋·푸시.

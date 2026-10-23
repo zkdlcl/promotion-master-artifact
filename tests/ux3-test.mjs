@@ -1,8 +1,10 @@
 import puppeteer from "puppeteer-core";
+import { freezeDate } from "./fixed-date.mjs";
 
 const FILE = "http://localhost:8765/index.html";
 const browser = await puppeteer.launch({ executablePath: "C:/Program Files/Google/Chrome/Application/chrome.exe", headless: "new", args: ["--no-sandbox"], defaultViewport: { width: 420, height: 900 } });
 const page = await browser.newPage();
+await page.evaluateOnNewDocument(freezeDate("2026-10-19"));   /* 3차(운영규정 6~7장) 준비 기간으로 고정 */
 const errors = [];
 page.on("pageerror", (e) => errors.push("pageerror: " + e.message));
 page.on("console", (m) => { if (m.type() === "error") errors.push("console: " + m.text()); });

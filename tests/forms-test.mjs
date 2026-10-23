@@ -31,6 +31,11 @@ ok("제23조 '인사서식 제16호' 링크", r23.some((s) => s === "인사서�
 const toc = await page.evaluate(() => ({ forms: [...document.querySelectorAll("#r-body .chap")].filter((c) => c.textContent.startsWith("[인사서식")).length, ids: [...document.querySelectorAll('#r-body .chap[id^="byeol-"]')].length, tocForm: document.querySelectorAll('#r-toc .toc-a[data-tj^="byeol-인사관리시행규칙-서"]').length }));
 ok("인사서식 37개 제목·id·목차", toc.forms === 37 && toc.ids >= 48 && toc.tocForm === 37, JSON.stringify(toc));
 
+for (const [no, n] of [["서11", 1], ["서12", 1], ["서16", 1]]) {
+  await page.evaluate((no) => openPeek("b|인사관리시행규칙:" + no, false), no); await sleep(400);
+  ok(`${no} 그림 서식이 그림으로 표시`, await page.evaluate((n) => [...document.querySelectorAll("#pk-body img")].filter((i) => i.naturalWidth > 100).length === n, n));
+  await page.evaluate(() => closePeek());
+}
 for (const [no, pat] of [["서25", /인사서식 제25호/], ["서7의2", /인사서식 제7호의2/], ["5의6", /별표 제5호의6/], ["서10", /인사서식 제10호/]]) {
   await page.evaluate((no) => openPeek("b|인사관리시행규칙:" + no, false), no);
   await sleep(500);

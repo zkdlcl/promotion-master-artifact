@@ -9,3 +9,7 @@ __pycache__/
 /orgmaster.wrapped.html
 /check.js
 /site/index.html
+
+# 테스트 화면 캡처 (저장소 루트·tests)
+/*.png
+tests/*.png

@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
 import puppeteer from 'puppeteer-core';
+import { freezeDate } from './fixed-date.mjs';
 const browser = await puppeteer.launch({executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true,args:['--no-sandbox']});
 const errors = [];
 try {
- const p = await browser.newPage(); p.on('pageerror',e => errors.push(e.message));
+ const p = await browser.newPage(); await p.evaluateOnNewDocument(freezeDate('2026-10-19')); p.on('pageerror',e => errors.push(e.message));
  await p.setViewport({width:1180,height:960});
  await p.goto(process.env.TEST_URL || 'http://127.0.0.1:8766/index.html',{waitUntil:'networkidle0'});
  await p.evaluate(() => { localStorage.clear(); sessionStorage.clear(); }); await p.reload({waitUntil:'networkidle0'});

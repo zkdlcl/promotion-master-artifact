@@ -1,15 +1,16 @@
 """인사관리 시행규칙 hwpx 의 인사서식(제1~33호)·별표 제5호의6 을 HTML 조각으로 뽑는다.
 표는 칸 병합(colspan/rowspan)을 살리고, 그림만 있는 서식은 자리표시 문구로 둔다.
-실행: python -X utf8 -I tools/hwpx_forms.py <풀어 둔 hwpx 폴더> <출력 json> [regs.json — 주면 시행규칙에 넣는다]
+실행: python -X utf8 -I tools/hwpx_forms.py <풀어 둔 hwpx 폴더> <출력 json> [regs.json — 주면 시행규칙에 넣는다] [줄인 그림 폴더]
   (hwpx 는 새 빈 폴더에 python -I zipfile 로 풀어서 넘긴다 — 다운로드한 파일이라 신뢰하지 않는다)
 """
-import glob, html as H, json, os, re, sys
+import base64, glob, html as H, json, os, re, sys
 import xml.etree.ElementTree as ET
 
 P = '{http://www.hancom.co.kr/hwpml/2011/paragraph}'
 HEAD = re.compile(r'^\(?인사서식\s*제\s*(\d+)\s*호(?:의\s*(\d+))?\)?\s*(.*)$', re.S)
 HEAD_ANY = re.compile(r'\(?인사서식\s*제\s*(\d+)\s*호(?:의\s*(\d+))?\)?([^\n]*)')
 AMEND = re.compile(r'<([^<>]*)>')
+IMG_DIR = None   # 줄여 둔 그림(imageN.jpg)이 든 폴더 — 없으면 자리표시 문구
 PIC = '<div class="ln mute">[그림 서식 — 원문 hwpx 의 이미지]</div>'
 
 
@@ -25,6 +26,14 @@ def ttext(t):
         out.append({'fwSpace': ' ', 'tab': ' ', 'lineBreak': '\n', 'nbSpace': ' '}.get(tag, ''))
         out.append(c.tail or '')
     return ''.join(out)
+
+
+def img_html(item_id):
+    f = os.path.join(IMG_DIR, item_id + '.jpg') if IMG_DIR and item_id else ''
+    if not f or not os.path.exists(f):
+        return PIC
+    b64 = base64.b64encode(open(f, 'rb').read()).decode()
+    return f'<div class="ln"><img src="data:image/jpeg;base64,{b64}" alt="서식 그림" style="max-width:100%;height:auto"></div>'
 
 
 def para_blocks(p, ctx):
@@ -45,7 +54,7 @@ def para_blocks(p, ctx):
             elif tag == 'tbl':
                 flush(); blocks.append(('html', table_html(c, ctx)))
             elif tag == 'pic':
-                flush(); ctx['pics'] += 1; blocks.append(('pic', ''))
+                flush(); ctx['pics'] += 1; blocks.append(('pic', next((e.get('binaryItemIDRef') for e in c.iter() if e.tag.endswith('}img')), '')))
             elif tag == 'drawText':
                 flush()
                 sl = c.find(P + 'subList')
@@ -71,7 +80,7 @@ def cell_html(tc, ctx):
             elif kind == 'html':
                 lines.append(v)
             else:
-                lines.append('<span class="mute">[그림]</span>')
+                lines.append(img_html(v))
     # 끝쪽 빈 줄은 버리고 가운데 빈 줄은 한 줄 간격으로 남긴다
     while lines and not lines[-1].strip():
         lines.pop()
@@ -141,7 +150,7 @@ def add_blocks(tgt, bl):
         elif k == 'html':
             tgt['html'] += v
         else:
-            tgt['html'] += PIC
+            tgt['html'] += img_html(v)
 
 
 def sections_paras(folder):
@@ -182,9 +191,10 @@ def build(folder):
                 cur = new_form(*hs[0]); forms.append(cur)
             elif len(hs) > 1:
                 sizes = re.findall(r'규격\s*:\s*[^\n<]*', raw_text(p))
+                ids = [e.get('binaryItemIDRef') for e in p.iter() if e.tag.endswith('}img')]
                 for k, h in enumerate(hs):
                     cur = new_form(*h); forms.append(cur)
-                    cur['html'] += (lines_html(sizes[k]) if k < len(sizes) else '') + PIC
+                    cur['html'] += (lines_html(sizes[k]) if k < len(sizes) else '') + img_html(ids[k] if k < len(ids) else '')
                 continue
         add_blocks(cur, bl)
     return forms, b56, ctx
@@ -215,6 +225,8 @@ def apply_to_regs(forms, b56, regs_path):
 
 
 if __name__ == '__main__':
+    if len(sys.argv) > 4:
+        IMG_DIR = sys.argv[4]
     forms, b56, ctx = build(sys.argv[1])
     json.dump({'forms': forms, 'b56': b56}, open(sys.argv[2], 'w', encoding='utf8'), ensure_ascii=False, indent=1)
     print(len(forms), 'forms', ctx, [f['no'] for f in forms])

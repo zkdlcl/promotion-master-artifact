@@ -11,6 +11,11 @@
 ## 이어서 하기
 진행 중인 일과 다음 순서는 `kb/진행상황.md` 에 있다. "기출 DB 이어서" 요청이면 그 파일부터 읽는다.
 
+## 컨텍스트 아끼기
+- `kb/exam_kb.json`·`kb/annot/*.json`·`regs.json`·`site/data/**`·`orgmaster*.html`·`dist/` 는 통독 금지 (`tools/ctx_guard.py` 훅이 막음). 조회는 `python -X utf8 tools/kbq.py digest|item|art|find|err|ans`.
+- 5문항 단위로 일하고 끝날 때마다 `kbq.py checkpoint "<한 줄>"`. 컨텍스트 알림(50%·70%)이 오면 `/clear` 를 권한다 — 새 세션은 SessionStart 훅이 `kb/진행상황.md` 발췌를 넣어 준다.
+- 단원별 스킬은 만들지 않는다(데이터가 규정 단위로 이미 나뉘어 있고 스킬은 절차만 담는다). Codex 는 `AGENTS.md` 가 `.claude/skills` 를 가리킨다.
+
 ## 스킬 (.claude/skills)
 | 스킬 | 언제 |
 |---|---|

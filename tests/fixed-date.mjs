@@ -1,0 +1,2 @@
+/* 오늘 날짜에 따라 달라지는 화면(오늘 범위·D-day)을 테스트에서 고정하려고 페이지의 Date 를 정해 둔 날로 되돌린다 */
+export const freezeDate = (ymd) => `(() => { const R = Date, T = new R(${JSON.stringify(ymd + "T09:00:00")}).getTime(), O = R.now(); const D = function (...a) { return a.length ? new R(...a) : new R(T + (R.now() - O)); }; D.prototype = R.prototype; D.now = () => T + (R.now() - O); D.parse = R.parse; D.UTC = R.UTC; window.Date = D; })();`;

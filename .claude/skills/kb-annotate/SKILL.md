@@ -28,6 +28,10 @@ python -X utf8 kb/work.py 운영규정             # 그 규정 문항 id 목록
    - 근거를 원문에서 찾을 수 없으면 `ok: null` + `why`, 문항 `status: 확인필요` 또는 `일부확인`. **추측해서 채우지 않는다.**
 4. `python -X utf8 kb/check_kb.py` — 통과할 때까지 고친다.
 5. 몇 묶음마다 커밋한다: `git add kb && git commit -m "기출 근거 DB: <규정> N/M"`.
+6. 묶음이 끝날 때마다 `python -X utf8 tools/kbq.py checkpoint "<규정> N/M 완료, 다음: …>"`. 컨텍스트 알림(50%·70%)이 왔으면 사용자에게 `/clear` 를 권한다(새 세션이 자동으로 이어받는다).
+
+## 큰 파일은 통독하지 않는다
+`kb/annot/<규정>.json` 은 `ctx_guard` 훅이 offset+limit(≤400줄) 없이는 못 읽게 막는다. 고칠 자리만 Grep `-n` 으로 찾아 그 부분만 읽고 Edit 한다. `exam_kb.json` 은 검사기가 만드는 산출물이라 읽지 않고 `tools/kbq.py item|art` 로 조회한다.
 
 ## 판단 기준
 - `form`: 문제의 발문으로 정한다(옳지 않은 것은? → 정오-틀린것, 몇 개인가 → 개수 …).

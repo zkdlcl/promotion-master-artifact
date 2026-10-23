@@ -91,7 +91,7 @@ function clozeIn(root, lv){
   });
   /* 본문 줄: 낱말 단위 */
   $$('.ln', root).forEach(el => {
-    if (el.closest('.chap') || /^\s*\[(별표|비고)/.test(el.textContent)) return;
+    if (el.closest('.chap') || /^\s*\[(별표|인사서식|비고)/.test(el.textContent)) return;
     const w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT), nodes = [];
     while (w.nextNode()){ const n = w.currentNode; if (!n.parentElement.closest('.b, .xr, .amend, td')) nodes.push(n); }
     let k = 0;

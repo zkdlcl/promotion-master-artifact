@@ -166,6 +166,8 @@ def content_html(content):
         return out
     if isinstance(content, dict):
         out = ''
+        if content.get('html'):   # 인사서식처럼 hwpx 에서 뽑아 둔 HTML 은 그대로
+            out += content['html']
         if content.get('table'):
             out += table_html(content['table'])
         if content.get('text'):
@@ -176,6 +178,7 @@ def content_html(content):
     return ''
 
 
+BYEOL_NO = re.compile(r'^(?:별표|(인사서식))\s*제(\d+)호(?:의(\d+))?$')
 STD = re.compile(r'^제(\d+)조(?:의(\d+))?$')
 FIXLOG = []
 
@@ -202,12 +205,13 @@ def convert(src_name, law, fid, regs):
             n = (a.get('number') or '').strip()
             t = (a.get('title') or '').strip()
             body = content_html(a.get('content'))
-            if is_b or n.startswith('별표'):
-                label = n if n.startswith('별표') else '별표 ' + n
-                extra.append(f'<div class="chap">[{esc(label)}]</div>' + (f'<div class="ln"><b>{esc(t)}</b></div>' if t else '') + body)
-                m = re.match(r'^별표\s*제(\d+)호$', label)
-                if m:
-                    byeol.append(int(m.group(1)))
+            if is_b or n.startswith('별표') or n.startswith('인사서식'):
+                label = n if n.startswith(('별표', '인사서식')) else '별표 ' + n
+                am = f' <span class="amend">&lt;{esc(a["amend"])}&gt;</span>' if a.get('amend') else ''
+                extra.append(f'<div class="chap">[{esc(label)}]{am}</div>' + (f'<div class="ln"><b>{esc(t)}</b></div>' if t else '') + body)
+                m = BYEOL_NO.match(label)
+                if m:   # 키: 별표 제5호의2 → '5의2', 인사서식 제25호 → '서25'
+                    byeol.append(('서' if m.group(1) else '') + m.group(2) + ('의' + m.group(3) if m.group(3) else ''))
                 continue
             m = STD.match(n)
             if m:
@@ -229,7 +233,7 @@ def convert(src_name, law, fid, regs):
     data = {'law': law, 'label': src_name, 'id': fid, 'articles': arts, 'extra': ''.join(extra)}
     index = {'law': law, 'label': r['name'], 'id': fid, 'file': f'data/laws/{fid}.json',
              'count': sum(1 for a in arts if a['type'] == 'a'),
-             'keys': [a['no'] for a in arts if a['type'] == 'a'], 'byeol': sorted(set(byeol)), 'chapters': heads}
+             'keys': [a['no'] for a in arts if a['type'] == 'a'], 'byeol': list(dict.fromkeys(byeol)), 'chapters': heads}
     return data, index
 
 

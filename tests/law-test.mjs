@@ -82,7 +82,7 @@ await page.evaluate(() => document.querySelector('#r-law [data-law="인사관리
 const bref = await page.evaluate(() => { const x = [...document.querySelectorAll("#r-body .xr")].find((e) => e.dataset.x.startsWith("b|인사관리시행규칙:")); return x ? x.dataset.x : null; });
 if (bref) {
   await page.evaluate((k) => [...document.querySelectorAll("#r-body .xr")].find((e) => e.dataset.x === k).click(), bref); await sleep(500);
-  ok("새 규정 별표 참조 → 패널에 표시", await page.evaluate(() => !document.getElementById("pk").hidden && document.querySelectorAll("#pk-body .ln, #pk-body table").length > 0 && /별표/.test(document.getElementById("pk-ti").textContent)), bref);
+  ok("새 규정 별표 참조 → 패널에 표시", await page.evaluate(() => !document.getElementById("pk").hidden && document.querySelectorAll("#pk-body .ln, #pk-body table").length > 0 && /별표|인사서식/.test(document.getElementById("pk-ti").textContent)), bref);
   await click("#pk-x");
 } else res.push("SKIP  인사관리시행규칙 본문 별표 참조 없음");
 

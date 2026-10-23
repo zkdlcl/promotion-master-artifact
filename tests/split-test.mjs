@@ -59,7 +59,7 @@ await page.evaluate(() => window.scrollBy(0, 900)); await sleep(300);
 ok("본문 스크롤해도 패널 유지", await page.evaluate(() => scrollY > 500 && !document.getElementById("pk").hidden && document.querySelector(".pk-pan").getBoundingClientRect().top === 0));
 // 본문의 다른 참조 → 패널 내용 교체(쌓이지 않음)
 const t0 = s1.ti;
-await page.evaluate(() => { const xs = [...document.querySelectorAll("#r-body .xr")]; const cur = PK.stack[0]; const o = xs.find((e) => e.dataset.x !== cur && e.getBoundingClientRect().top > 100 && e.getBoundingClientRect().top < 700); o.click(); });
+await page.evaluate(() => { const xs = [...document.querySelectorAll("#r-body .xr")]; const cur = PK.stack[0]; const o = xs.find((e) => e.dataset.x !== cur && e.getBoundingClientRect().top > 100 && e.getBoundingClientRect().top < 700) || xs.find((e) => e.dataset.x !== cur && e.getBoundingClientRect().top > 100); o.scrollIntoView({ block: "center" }); o.click(); });
 await sleep(400);
 const s2 = await state(page);
 ok("본문에서 다른 참조 → 패널 내용 교체(스택 1)", s2.stack === 1 && s2.ti !== t0 && s2.split, `${t0} → ${s2.ti}`);

@@ -5,23 +5,41 @@
 const artLookup = async (law, no) => { try { await loadLaw(law); } catch (e) { return null; } return D.articles.find(a => a.type === 'a' && a.law === law && a.no === no) || null; };
 const lawArticles = law => D.articles.filter(a => a.type === 'a' && a.law === law);
 
-/* 본문 속 '제N조'·'별표 제N호' 를 눌러서 열 수 있는 링크로 바꾼다 (회독 본문의 규칙과 동일) */
+/* 별표 키: '5'·'5의2' = 별표 제5호·제5호의2, '서25'·'서7의2' = 인사서식 제25호·제7호의2 */
+const BYEOL_NO = /^(서?)(\d+)(?:의(\d+))?$/;
+const byeolLabel = no => { const m = BYEOL_NO.exec(no); return m ? (m[1] ? '인사서식' : '별표') + ' 제' + m[2] + '호' + (m[3] ? '의' + m[3] : '') : '별표 ' + no; };
+const byeolIdOf = (law, head) => { const m = /^\[(별표|인사서식)(?:\s*제(\d+)호(?:의(\d+))?)?\]/.exec(head); return m ? 'byeol-' + law + '-' + (m[1] === '인사서식' ? '서' : '') + (m[2] || 1) + (m[3] ? '의' + m[3] : '') : ''; };
+/* 별표·인사서식 참조 (뒤의 '의N' 은 '제5호의 6'처럼 띄어 써도 읽고, '의 구분' 같은 뒷말은 건드리지 않는다) */
+const XRE2 = /(인사서식|별표)(?:\s*(?:제\s*)?(\d+)\s*호?(?:\s*의\s*(\d+)(?=[에와과의을를이가는은도로,.)\s]|$))?)?|제\s*(\d+)\s*조(?:\s*의\s*(\d+))?|제\s*(\d+)\s*호(?:\s*의\s*(\d+)(?=[에와과의을를이가는은도로,.)\s]|$))?/g;
+/* 원문 글자와 실제 서식이 다른 참조: 제3조의2 '별표 제25호의 선임증' 은 인사서식 제25호 */
+const XB_ALIAS = new Map([['인사관리시행규칙:25', '인사관리시행규칙:서25']]);
+/* 본문 속 '제N조'·'별표 제N호'·'인사서식 제N호' 를 눌러서 열 수 있는 링크로 바꾼다 (회독 본문의 규칙과 동일) */
 function linkifyNodes(els, lawOf){
   els.forEach(el => {
     const defLaw = lawOf(el), w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT), nodes = [];
     while (w.nextNode()){ const n = w.currentNode; if (!n.parentElement.closest('.b, .xr')) nodes.push(n); }
     nodes.forEach(n => {
-      const t = n.nodeValue; XRE.lastIndex = 0; let m, last = 0, out = null;
-      while ((m = XRE.exec(t))){
-        const pre = t.slice(Math.max(0, m.index - 30), m.index), law = lawFromPre(pre, defLaw);
-        if (!law) continue;
-        let key, kind;
-        if (m[0].startsWith('별표')){ key = law + ':' + (m[1] || 1); kind = 'b'; if (!XB.has(key)) continue; }
-        else { key = law + ':' + m[2] + (m[3] ? '의' + m[3] : ''); kind = 'a'; if (!XA.has(key)) continue; }
+      const t = n.nodeValue; XRE2.lastIndex = 0; let m, last = 0, out = null, prev = null;
+      while ((m = XRE2.exec(t))){
+        let key, kind, law;
+        if (m[6]){   /* '별표 제5호 내지 제5호의6' 의 뒤쪽 끝: 앞 참조와 같은 규정·종류로 따로 링크 */
+          if (!prev || !/^\s*(?:내지|~|∼|및|,)\s*$/.test(t.slice(prev.end, m.index))) continue;
+          law = prev.law; kind = 'b'; key = law + ':' + (prev.pfx === '인사서식' ? '서' : '') + m[6] + (m[7] ? '의' + m[7] : '');
+          if (!XB.has(key)) continue;
+        } else {
+          law = lawFromPre(t.slice(Math.max(0, m.index - 30), m.index), defLaw);
+          if (!law) continue;
+          if (m[1]){
+            if (m[1] === '인사서식' && !m[2]) continue;
+            kind = 'b'; key = law + ':' + (m[1] === '인사서식' ? '서' : '') + (m[2] || 1) + (m[3] ? '의' + m[3] : '');
+            if (!XB.has(key)){ const al = XB_ALIAS.get(key); if (!al || !XB.has(al)) continue; key = al; }
+          } else { key = law + ':' + m[4] + (m[5] ? '의' + m[5] : ''); kind = 'a'; if (!XA.has(key)) continue; }
+        }
         if (!out) out = document.createDocumentFragment();
         out.appendChild(document.createTextNode(t.slice(last, m.index)));
         const sp = document.createElement('span'); sp.className = 'xr'; sp.dataset.x = kind + '|' + key; sp.title = '누르면 팝업으로 열기'; sp.textContent = m[0];
         out.appendChild(sp); last = m.index + m[0].length;
+        prev = kind === 'b' ? {end: last, law, pfx: m[1] || (prev && prev.pfx)} : null;
       }
       if (out){ out.appendChild(document.createTextNode(t.slice(last))); n.parentNode.replaceChild(out, n); }
     });
@@ -29,8 +47,8 @@ function linkifyNodes(els, lawOf){
 }
 function byeolHtml(law, n){
   if (law === '정관') return '<div class="chap">[별표] 분사무소 설치 현황 (제3조의2 관련)</div><div class="tw"><table><tr><th>명칭</th><th>소재지</th></tr>' + D.byeol.map(r => `<tr><td>${esc(r[0])}</td><td>${esc(r[1])}</td></tr>`).join('') + '</table></div>';
-  const parts = ((D.extra && D.extra[law]) || '').split(/(?=<div class="chap">\[별표)/);
-  return parts.find(p => new RegExp('^<div class="chap">\\[별표 제' + n + '호\\]').test(p)) || '';
+  const parts = ((D.extra && D.extra[law]) || '').split(/(?=<div class="chap">\[(?:별표|인사서식))/), head = '<div class="chap">[' + byeolLabel(n) + ']';
+  return parts.find(p => p.startsWith(head)) || '';
 }
 
 /* ── 참조 패널 ── */
@@ -97,7 +115,7 @@ async function renderPeek(){
   let root = document.createElement('div'); root.className = 'pk-art';
   if (kind === 'b'){
     try { await loadLaw(law); } catch (e) { /* 아래에서 '찾지 못했습니다' 표시 */ }
-    ti.innerHTML = `<span class="badge">${esc(law)}</span> <b>별표 제${esc(no)}호</b>`;
+    ti.innerHTML = `<span class="badge">${esc(law)}</span> <b>${esc(byeolLabel(no))}</b>`;
     tools.innerHTML = '<div class="pk-bar">' + modeSeg + amendBtn + '</div>';
     root.innerHTML = byeolHtml(law, no) || '<p class="mute">별표를 찾지 못했습니다.</p>';
     linkifyNodes($$('.ln, td', root), () => law);
@@ -203,14 +221,16 @@ function syncAppendixJump(){
   const jump = $('#r-jump'); if (!jump) return;
   const headings = $$('#r-body .chap[id^="byeol-"]');
   if (!headings.length || jump.querySelector('[data-appendices]')) return;
-  const group = document.createElement('optgroup'); group.label = '별표'; group.dataset.appendices = '1';
+  const groups = {};   /* 별표 / 인사서식 두 묶음 */
   headings.forEach(h => {
+    const kind = h.textContent.startsWith('[인사서식') ? '인사서식' : '별표';
+    if (!groups[kind]){ groups[kind] = document.createElement('optgroup'); groups[kind].label = kind; groups[kind].dataset.appendices = '1'; }
     const label = h.cloneNode(true); $$('.amend', label).forEach(a => a.remove());
     let title = label.textContent.trim();
     if (title.endsWith(']') && h.nextElementSibling?.matches('.ln')) title += ' ' + h.nextElementSibling.textContent.trim();
-    const option = document.createElement('option'); option.value = h.id; option.textContent = title; group.appendChild(option);
+    const option = document.createElement('option'); option.value = h.id; option.textContent = title; groups[kind].appendChild(option);
   });
-  jump.appendChild(group);
+  Object.values(groups).forEach(g => jump.appendChild(g));
 }
 function syncToc(){
   const body = $('#r-body'); if (!body) return;
@@ -264,7 +284,7 @@ todayEnhance = function(){ _todayEnh2(); try { todayCols(); } catch(e){ console.
 
 /* 회독 본문의 참조 링크도 같은 규칙으로 만든다 (다른 규정으로의 링크 포함) */
 linkRefs = function(){
-  $$('#r-body .chap').forEach(c => { const m = c.textContent.match(/^\[별표(?:\s*제(\d+)호)?\]/); if (m) c.id = 'byeol-' + R.law + '-' + (m[1] || 1); });
+  $$('#r-body .chap').forEach(c => { const id = byeolIdOf(R.law, c.textContent); if (id) c.id = id; });
   linkifyNodes($$('#r-body .ln, #r-body td'), () => R.law);
 };
 /* 아직 불러오지 않은 규정으로 이동할 때는 불러온 뒤에 이동 */

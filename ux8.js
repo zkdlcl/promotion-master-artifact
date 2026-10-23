@@ -189,9 +189,10 @@ function goalNav(key){
   if (/💬/.test(t)) return showTab('ask');
   if (/🔬/.test(t)) return showTab('lab');
   /* '별표 제1~6호'처럼 '조' 없이 별표만 있는 목표는 조문(제1조)이 아니라 별표로 간다 */
-  if (!/제\s*\d+조/.test(t) && (m = t.match(/별표\s*제?(\d+)/))) return toRead('b|' + law + ':' + m[1]);
+  const bno = x => { const b = x.match(/(인사서식|별표)\s*제?\s*(\d+)(?:\s*호?\s*의\s*(\d+))?/); return b && (b[1] === '인사서식' ? '서' : '') + b[2] + (b[3] ? '의' + b[3] : ''); };
+  if (!/제\s*\d+조/.test(t) && (m = bno(t))) return toRead('b|' + law + ':' + m);
   if ((m = t.match(/제(\d+)(?:조의(\d+))?(?:[~·]\d+)*조?/))) return toRead('a|' + law + ':' + m[1] + (m[2] ? '의' + m[2] : ''));
-  if ((m = t.match(/별표\s*제?(\d+)/))) return toRead('b|' + law + ':' + m[1]);
+  if ((m = bno(t))) return toRead('b|' + law + ':' + m);
   if (/기출|문항/.test(t)) return showTab('exam');
   toRead(null);
 }

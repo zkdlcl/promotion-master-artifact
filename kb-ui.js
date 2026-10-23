@@ -4,8 +4,8 @@
    2) 회독: 기출에 나온 조문 머리에 '기출 N' 배지
    D.kb 는 build_artifact.py 가 kb/exam_kb.json 에서 줄여 넣는다. */
 const KB = D.kb || {items: {}, arts: {}};
-const kbArtLabel = k => { const [law, no] = k.split(':'); return law + ' ' + (no.startsWith('별표') ? no.replace('별표', '별표 ') : nl(no)); };
-const kbPeekKey = k => { const [law, no] = k.split(':'); return no.startsWith('별표') ? 'b|' + law + ':' + no.replace('별표', '') : 'a|' + k; };
+const kbArtLabel = k => { const [law, no] = k.split(':'); return law + ' ' + (no.startsWith('별표') ? no.replace('별표', '별표 ') : no.startsWith('인사서식') ? no.replace('인사서식', '인사서식 ') : nl(no)); };
+const kbPeekKey = k => { const [law, no] = k.split(':'); return no.startsWith('별표') ? 'b|' + law + ':' + no.replace('별표', '') : no.startsWith('인사서식') ? 'b|' + law + ':서' + no.replace('인사서식', '') : 'a|' + k; };
 const KB_ST = {'확인됨': '', '일부확인': '일부 확인', '확인필요': '근거 확인 필요', '개정차이': '지금 원문과 다름'};
 
 function kbExamBox(id){

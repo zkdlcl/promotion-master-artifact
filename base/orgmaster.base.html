@@ -655,6 +655,7 @@ const EN3 = /(한다|된다|이다|있다|없다)$/;
 function split3(t){
   if (CK3.has(t)) return null;
   let m;
+  if (/(불구|[가-힣]{2})하(고|며|여|나|게|면|지)$/.test(t) && t.length > 3) return [t, ''];   /* 불구하고 → [불구하고] ('불구하'+'고' 로 자르지 않는다) */
   if ((m = t.match(PA2)) && t.length > m[1].length) return [t.slice(0, -m[1].length), m[1]];
   if ((m = t.match(EN3)) && t.length > m[1].length) return [t.slice(0, -m[1].length), m[1]];
   if (t.length >= 3 && PA1.test(t)) return [t.slice(0, -1), t.slice(-1)];

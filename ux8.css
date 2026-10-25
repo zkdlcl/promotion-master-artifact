@@ -53,3 +53,10 @@
 /* ── 복습 카드: 질문 머리의 규정·조문 ── */
 .q-ctx{margin:10px 0 -2px;font-size:.85rem;font-weight:650;color:var(--mute);letter-spacing:-.01em}
 .ans .src .xr{cursor:pointer}
+
+/* 별표 표: 긴 머리글은 줄바꿈, 짧은 본문 칸은 좁게 (태블릿에서 가로로 밀리지 않게) */
+.tw table{table-layout:auto}
+.tw th{white-space:normal;word-break:keep-all;font-size:.82rem;line-height:1.3;padding:6px 6px;vertical-align:middle}
+.tw td{word-break:keep-all;padding:6px 6px}
+.tw td:first-child{min-width:7.5em}
+@media (min-width:600px) and (max-width:1100px){ .tw table{font-size:.88rem} }

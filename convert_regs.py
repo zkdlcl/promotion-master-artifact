@@ -60,9 +60,12 @@ def paren(s):
     return TILDE.sub(one, s).replace(KEEP, '~')
 
 
-def blanks(text):
+TBL_B1 = re.compile(r'(?<![가-힣])(?:파면|해임|강등|정직|감봉|견책|불문)(?![가-힣])')   # 별표 표 칸의 징계 종류 (본문 카드에는 쓰지 않음)
+
+
+def blanks(text, table=False):
     out, pos = [], 0
-    for m in RX.finditer(text):
+    for m in (_tbl_iter(text) if table else RX.finditer(text)):
         out.append(esc(text[pos:m.start()]))
         t = m.group(0)
         if m.lastgroup == 'prot':
@@ -74,6 +77,16 @@ def blanks(text):
         pos = m.end()
     out.append(esc(text[pos:]))
     return ''.join(out)
+
+
+def _tbl_iter(text):
+    ms = list(RX.finditer(text))
+    for m in TBL_B1.finditer(text):
+        ms = [x for x in ms if not (x.lastgroup == 'b2' and x.start() < m.end() and m.start() < x.end())]   # 해임 은 동사가 아니라 징계 종류
+        if not any(x.start() < m.end() and m.start() < x.end() for x in ms):
+            ms.append(type('M', (), {'start': lambda self, g=m: g.start(), 'end': lambda self, g=m: g.end(),
+                                     'group': lambda self, i=0, g=m: g.group(0), 'lastgroup': 'b1'})())
+    return sorted(ms, key=lambda x: x.start())
 
 
 def inline(line):
@@ -138,11 +151,12 @@ def table_html(t):
     if not t:
         return ''
     cell = lambda c: esc(paren(str(c if c is not None else ''))).replace('\n', '<br>')
+    bcell = lambda c: blanks(paren(str(c if c is not None else '')), True).replace(chr(10), '<br>')   # 본문 칸은 숫자·주체·동사 빈칸도 만든다
     h = ''
     if t.get('headers'):
         h += '<tr>' + ''.join(f'<th>{cell(c)}</th>' for c in t['headers']) + '</tr>'
     for r in t.get('rows') or []:
-        h += '<tr>' + ''.join(f'<td>{cell(c)}</td>' for c in r) + '</tr>'
+        h += '<tr>' + ''.join(f'<td>{bcell(c)}</td>' for c in r) + '</tr>'
     return f'<div class="tw"><table>{h}</table></div>'
 
 
@@ -208,6 +222,8 @@ def convert(src_name, law, fid, regs):
             if is_b or n.startswith('별표') or n.startswith('인사서식'):
                 label = n if n.startswith(('별표', '인사서식')) else '별표 ' + n
                 am = f' <span class="amend">&lt;{esc(a["amend"])}&gt;</span>' if a.get('amend') else ''
+                body = fix_blanks(body, FIXLOG)   # 별표 안 운[전원] → [운전원]
+                assert not glued_left(body), (law, label, glued_left(body))
                 extra.append(f'<div class="chap">[{esc(label)}]{am}</div>' + (f'<div class="ln"><b>{esc(t)}</b></div>' if t else '') + body)
                 m = BYEOL_NO.match(label)
                 if m:   # 키: 별표 제5호의2 → '5의2', 인사서식 제25호 → '서25'

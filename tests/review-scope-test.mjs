@@ -31,11 +31,11 @@ try {
     return result;
   });
   assert.equal(count[9].count,145);
-  assert.equal(count[10].count,276);
+  assert.equal(count[10].count,277);
   assert.equal(count[15].count,201);
-  assert.equal(count[16].count,317);
+  assert.equal(count[16].count,318);
   assert.equal(count[25].count,101);
-  assert.equal(count.after.scope,'all');assert.equal(count.after.count,619);assert.match(count.after.label,/자율 복습/);
+  assert.equal(count.after.scope,'all');assert.equal(count.after.count,620);assert.match(count.after.label,/자율 복습/);
   assert.ok(count.finance>0);
   assert.equal(await p.evaluate(()=>JSON.stringify(S)),snapshot);
   console.log('PASS 고정 과목 선택, 9~25차 결합 범위, 일정 종료 후 전체·과목별 복습, 기록 보존');

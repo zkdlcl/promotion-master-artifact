@@ -94,7 +94,12 @@ document.addEventListener('click', e => {
 /* 처음 열고 Tab → 첫 빈칸 */
 document.addEventListener('keydown', e => {
   if (e.key !== 'Tab' || e.shiftKey || !$('#p-bt').classList.contains('on') || !BT.sess || BT.done || BT.checked) return;
-  if (e.target.closest && e.target.closest('#bt-art')) return;
+  if (e.target.closest && e.target.closest('#bt-art')){
+    /* 마지막 빈칸에서 Tab → 초성 힌트를 건너뛰고 채점 버튼 (Enter/Space 로 바로 채점) */
+    const ins = $$('#bt-art .bt-in'), ck = $('#bt-check');
+    if (ck && ins.length && e.target === ins[ins.length - 1]){ e.preventDefault(); ck.focus(); }
+    return;
+  }
   const ins = $$('#bt-art .bt-in'), f = ins.find(i => !i.value) || ins[0]; if (!f) return;
   e.preventDefault(); f.focus();
 });

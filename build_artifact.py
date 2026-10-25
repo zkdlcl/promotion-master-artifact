@@ -66,6 +66,15 @@ for a in D['articles']:
         a['html'] = fix_blanks(a['html'], _flog)
         if glued_left(a['html']): sys.exit(f"빌드 멈춤: 낱말 중간 빈칸 {a['law']} {a['no']} {glued_left(a['html'])}")
 print('빈칸 경계 바로잡음', len(_flog), '곳:', ', '.join(sorted(set(_flog))))
+# 별표 표 칸에도 숫자·주체·징계 종류 빈칸 (convert_regs 의 표 규칙과 같음) — 이미 빈칸이 있는 칸은 그대로
+import html as _H
+from convert_regs import blanks as _blanks
+def _cell_blanks(m):
+    if 'class="b ' in m.group(2): return m.group(0)
+    seg = re.split(r'(<[^<>]+>)', m.group(2))
+    return m.group(1) + ''.join(x if x.startswith('<') else _blanks(_H.unescape(x), True) for x in seg) + '</td>'
+for _k, _v in D['extra'].items():
+    D['extra'][_k] = re.sub(r'(<td[^>]*>)(.*?)</td>', _cell_blanks, _v, flags=re.S)
 newdata = json.dumps(D, ensure_ascii=False, separators=(',', ':')).replace('</', '<\\/')
 body = body[:m.start(2)] + newdata + body[m.end(2):]
 

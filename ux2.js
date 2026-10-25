@@ -68,6 +68,7 @@ function btPick(){
    별표 표 칸은 낱말마다 끊지 않고 칸 안의 한 줄('1. ' 같은 번호는 남김)을 한 빈칸으로 가린다. 머리 행은 그대로 둔다.
    어떤 낱말을 가릴지는 글자로 정해지므로 다시 그려도 같은 자리가 가려진다. */
 const CK_KEEP = new Set(['경우','다음','해당','등','수','때','것','바','위','각호','같은','관한','대한','따른','의한','위한','따라','의하여','위하여','대하여','관하여','정하는','정한','하는','하고','하며','하거나','있는','없는','이러한','그밖에','밖의','그','이','다른','삭제','해당하','비고']);
+const CK_JOSA = /^(?:으로서|으로써|으로부터|에게서|에서는|에서도|으로는|으로도|까지는|부터는|에게는|에서|에게|으로|로서|로써|로부터|까지|부터|보다|마다|조차|에는|에도|에의|와의|과의|에만)$/;
 const CZ_RATE = {2: 30, 3: 65};
 function czHash(str){ let h = 2166136261; for (let i = 0; i < str.length; i++){ h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0) % 100; }
 function czSpan(txt){ const b = document.createElement('span'); b.className = 'b b3'; b.textContent = txt; return b; }
@@ -96,8 +97,15 @@ function clozeIn(root, lv){
     while (w.nextNode()){ const n = w.currentNode; if (!n.parentElement.closest('.b, .xr, .amend, td')) nodes.push(n); }
     let k = 0;
     nodes.forEach(n => {
-      const t = n.nodeValue, re = /[가-힣A-Za-z0-9]+/g; let m, last = 0, hit = false; const out = document.createDocumentFragment();
+      const t = n.nodeValue, re = /「[^」]+」|[가-힣A-Za-z0-9]+/g; let m, last = 0, hit = false; const out = document.createDocumentFragment();
       while ((m = re.exec(t))){
+        if (m[0][0] === '「'){   /* 법령 이름은 「 」 안 전체가 한 낱말 (직원 운영규정) */
+          const nm = m[0].slice(1, -1);
+          if (czHash(nm + '|' + (k++)) >= rate) continue;
+          out.appendChild(document.createTextNode(t.slice(last, m.index) + '「')); out.appendChild(czSpan(nm)); out.appendChild(document.createTextNode('」'));
+          last = re.lastIndex; hit = true; continue;
+        }
+        if (CK_JOSA.test(m[0])) continue;   /* 에서·으로 같은 조사만 따로 떨어진 것은 가리지 않는다 */
         if (/^\d+$/.test(m[0]) && /^[.)]/.test(t.slice(re.lastIndex, re.lastIndex + 1))) continue;
         const sp = split3(m[0]); if (!sp || !sp[0] || CK_KEEP.has(sp[0])) continue;
         const num = /\d/.test(sp[0]);

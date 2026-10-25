@@ -15,7 +15,7 @@ description: 승진고시 마스터 아티팩트가 사라졌거나 다른 계�
 | 소스·도구·테스트 | 나머지 전부 |
 
 ## 절차
-1. `git clone https://github.com/zkdlcl/promotion-master-artifact.git` (비공개, 소유자 계정 필요)
+1. `git clone https://github.com/zkdlcl/regulation-study-app.git` (소유자 계정 필요)
 2. (선택) 다시 빌드: `python -X utf8 build_artifact.py` — 아니면 `dist/orgmaster.html` 을 그대로 쓴다.
 3. 게시 파일을 Claude 의 scratchpad 로 복사: `orgmaster.html` + `data/laws/*.json` + `data/quiz/*.json` (폴더 구조 유지).
 4. **새 아티팩트로 게시**: `artifact-capabilities` 스킬을 먼저 불러온 뒤 `Artifact publish` — `file_path` = 복사한 `orgmaster.html`, `root` = 그 폴더, `files` = 데이터 118개, `capabilities: {"db": {}}`, `icon: "book"`. 한 번에 255개·64MB 이하라 한 번에 올라간다.

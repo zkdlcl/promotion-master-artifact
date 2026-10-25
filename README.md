@@ -1,4 +1,4 @@
-# 승진고시 마스터
+# Regulation Study App
 
 > 공공기관 승진 시험(규정 8종 + 기출 432문항)을 **원문 근거 기반**으로 반복 학습하게 만든 태블릿 우선 학습 앱입니다.
 > 단일 HTML 아티팩트로 배포하고, 이 저장소는 그 앱의 **소스·데이터·검증 하네스·복원 절차**를 담습니다.
@@ -47,9 +47,9 @@ Vanilla JS · CSS(프레임워크 없는 단일 HTML) / Python 3(빌드·변환�
 
 # 작업 가이드 (내부용)
 
-## 승진고시 마스터 (아티팩트) 소스
+## Artifact source
 
-claude.ai 아티팩트 **승진고시 마스터**(https://claude.ai/artifact/XmAgPN8DtD9eoujJX8naXs)의 소스·데이터·테스트 백업입니다.
+claude.ai 아티팩트의 소스·데이터·테스트 백업입니다.
 학습 기록은 아티팩트 DB(`state/progress`)와 브라우저에 있고, 이 저장소에는 **페이지와 데이터**만 있습니다.
 
 ## Claude · Codex 같이 쓸 때 (필독)

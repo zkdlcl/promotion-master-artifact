@@ -15,4 +15,4 @@ Claude Code 와 같은 폴더를 번갈아 쓴다. 규칙의 원본은 `CLAUDE.m
 - 조회는 `python -X utf8 tools/kbq.py digest <규정> | item <id> | art <규정:조문> | find <규정> <낱말> | err | ans <id>`. 출력은 약 5000자까지, 더 필요하면 `--offset`.
 - 5문항(조문 묶음) 단위로 일하고, 끝날 때마다 `python -X utf8 tools/kbq.py checkpoint "<한 줄>"`. 컨텍스트 알림이 오면 사용자에게 새 세션(`/clear` 또는 새 대화)을 권한다. 새 세션은 SessionStart 훅이 `kb/진행상황.md` 발췌를 넣어 준다.
 - 이어서 하기: "기출 DB 이어서" 요청이면 `kb/진행상황.md` 부터.
-- 훅은 `.codex/hooks.json` 에 있고, 처음 한 번 `/hooks` 에서 신뢰해야 동작한다.
+- Codex 훅 설정은 공개본에서 제외했다.

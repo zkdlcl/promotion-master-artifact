@@ -70,7 +70,7 @@ claude.ai 아티팩트 **승진고시 마스터**(https://claude.ai/artifact/XmA
 |---|---|
 | `tools/kbq.py` | `digest`·`item`·`art`·`find`·`err`·`ans` 조회(출력 약 5000자, `--offset` 이어보기), `checkpoint` 로 `kb/진행상황.md` '## 세션 메모'에 한 줄(최근 30줄, BOM·줄바꿈 보존) |
 | `tools/ctx_guard.py` | 훅 하나로 4역할: `pretool`(큰 DB 통독 차단, offset+limit≤400줄만 허용, 줄바꿈 없는 JSON 은 불가, `CTX_GUARD=off` 로 해제) · `prompt`(대화 기록 크기로 사용률 추정, 50%·70% 한 번씩 알림) · `resume`(진행상황 '다음 순서'+세션 메모 1500자 주입) · `precompact`(git 상태를 `.git/study-harness/ctx-handoff.md` 에 저장) |
-| `.claude/settings.json` · `.codex/hooks.json` | 위 훅 연결. 기존 구조도 훅(`study_harness.py`)은 그대로 두고 나란히 추가. Codex 는 처음 한 번 `/hooks` 신뢰 필요 |
+| `.claude/settings.json` | 위 훅 연결. 기존 구조도 훅(`study_harness.py`)은 그대로 두고 나란히 추가. Codex 는 처음 한 번 `/hooks` 신뢰 필요 |
 | `AGENTS.md` | Codex 용 요약. 스킬 원본은 `.claude/skills` 한 벌 |
 
 한계: 훅은 `/clear`·`/compact` 를 대신 칠 수 없다(차단·알림·기록·재주입만). 사용률은 추정치. 검사: `python -X utf8 -m unittest discover -s tests -p ctx_guard_test.py`.
@@ -146,7 +146,7 @@ python -X utf8 tools/study_harness.py stop       # 영수증이 일치하는 구
 python -X utf8 tools/study_harness.py checkpoint # 진행표·프롬프트·Git 상태의 로컬 인계 복사본
 ```
 
-Codex의 `.codex/hooks.json`에 Stop/SessionStart/PreCompact를 설정했다.
+Codex용 훅 설정은 공개본에서 제외했다.
 새 훅은 최초 `/hooks`에서 신뢰한 뒤 사용할 수 있다. 현재 세션에서 자동 실행된다고 가정하지 않는다.
 Claude의 기존 Stop 훅도 같은 Python 하네스를 호출한다. 검증 후 코드가 바뀌면 커밋을 보류한다.
 구조도 작업 외 파일을 임의로 stage하지 않으며, 자동 push·게시 기능은 없다.

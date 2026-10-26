@@ -654,12 +654,14 @@ const PA1 = /[은는이가을를의에로도만과와며고나]$/;
 const EN3 = /(한다|된다|이다|있다|없다)$/;
 /* 조사 글자(과·가·의·고·도…)로 끝나지만 명사 끝인 낱말 — 결과·평가·심의·보고·제도·미만처럼 통째로 한 낱말이다 */
 const NOUN_END = /(결과|평가|인가|대가|단가|협의|합의|심의|논의|보고|신고|통고|공고|고지|정도|제도|한도|강도|미만|차이|사이|나이|없이|같이)$/;
+const TWO_NOUN = new Set(['의의','이의','회의','동의','결의','합의','협의','심의','논의','주의','총의','정의','숙의','교의','대의','공의','사의']);   /* 2글자 명사: 조사가 아니다 */
 function split3(t){
   if (CK3.has(t)) return null;
   let m;
   if (/(불구|[가-힣]{2})하(고|며|여|나|게|면|지)$/.test(t) && t.length > 3) return [t, ''];   /* 불구하고 → [불구하고] ('불구하'+'고' 로 자르지 않는다) */
   if ((m = t.match(PA2)) && t.length > m[1].length) return [t.slice(0, -m[1].length), m[1]];
   if ((m = t.match(EN3)) && t.length > m[1].length) return [t.slice(0, -m[1].length), m[1]];
+  if (t.length === 2 && /[의을를은는]$/.test(t) && !TWO_NOUN.has(t)) return [t[0], t[1]];   /* 날의 → 날+의 (조사까지 빈칸으로 삼지 않는다) */
   if (t.length >= 3 && !NOUN_END.test(t) && PA1.test(t)) return [t.slice(0, -1), t.slice(-1)];
   return [t, ''];
 }

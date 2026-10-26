@@ -178,6 +178,11 @@ function goalNav(key){
     });
     return;
   }
+  if (g.go){   /* plan-gen.js 가 만든 과제: 규정·탭을 직접 지정 */
+    if (g.go === 'bt' && g.law){ BT.law = g.law; BT.topic = '0'; }
+    if (g.go === 'read' && g.law){ R.law = g.law; R.topic = '0'; saveRd(); }
+    return showTab(g.go);
+  }
   const t = g.t.replace(/<[^>]+>/g, ''), title = d.title;
   const law = (t.match(/조직법|정관|운영규정/) || [])[0] || (/운영규정/.test(title) ? '운영규정' : /^정관/.test(title) ? '정관' : '조직법');
   const toRead = ref => { R.law = law; R.topic = '0'; saveRd(); showTab('read'); if (ref) setTimeout(() => goRef(ref), 80); };

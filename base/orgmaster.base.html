@@ -652,13 +652,15 @@ const CK3 = new Set(['및','또는','그','이','각','다만','이를','이에'
 const PA2 = /(으로서|으로써|으로부터|에게서|이라고|라고|에서는|에서도|으로는|으로도|까지는|부터는|에게는|에서|에게|으로|로서|로써|로부터|까지|부터|보다|마다|조차|이나|이고|이라|에는|에도|에의|와의|과의|에만|이란)$/;
 const PA1 = /[은는이가을를의에로도만과와며고나]$/;
 const EN3 = /(한다|된다|이다|있다|없다)$/;
+/* 조사 글자(과·가·의·고·도…)로 끝나지만 명사 끝인 낱말 — 결과·평가·심의·보고·제도·미만처럼 통째로 한 낱말이다 */
+const NOUN_END = /(결과|평가|인가|대가|단가|협의|합의|심의|논의|보고|신고|통고|공고|고지|정도|제도|한도|강도|미만|차이|사이|나이|없이|같이)$/;
 function split3(t){
   if (CK3.has(t)) return null;
   let m;
   if (/(불구|[가-힣]{2})하(고|며|여|나|게|면|지)$/.test(t) && t.length > 3) return [t, ''];   /* 불구하고 → [불구하고] ('불구하'+'고' 로 자르지 않는다) */
   if ((m = t.match(PA2)) && t.length > m[1].length) return [t.slice(0, -m[1].length), m[1]];
   if ((m = t.match(EN3)) && t.length > m[1].length) return [t.slice(0, -m[1].length), m[1]];
-  if (t.length >= 3 && PA1.test(t)) return [t.slice(0, -1), t.slice(-1)];
+  if (t.length >= 3 && !NOUN_END.test(t) && PA1.test(t)) return [t.slice(0, -1), t.slice(-1)];
   return [t, ''];
 }
 function cloze3(){

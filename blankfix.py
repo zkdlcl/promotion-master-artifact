@@ -12,9 +12,26 @@ BLANK_FIX = {
     ('장애아', '동의'): '장애아동의',                         # 장애아동 + 의 — 빈칸이 아님 (개수가 줄어드는 유일한 곳, 조직법·정관·운영규정 카드는 손으로 만든 것이라 영향 없음)
     ('위원', '과반수'): None,                                 # '위원 과반수' 띄어쓰기 빠짐 — 과반수만 빈칸
 }
+# 조사·어미처럼 보이는 글자로 끝나지만 통째로 한 낱말인 것 — 빈칸이 그 앞에서 끊기면([지체없]이) 낱말 끝까지 넓힌다
+WHOLE_WORDS = ['없이', '같이', '결과', '평가', '미만', '한도', '차이', '사이']   # 회의·동의처럼 앞말+조사와 구분 안 되는 낱말은 넣지 않는다
+RIGHT = re.compile(r'<span class="b (b\d)">([^<]+)</span>([가-힣]+)')
+
+
+def fix_right(html, log=None):
+    def one(m):
+        cls, t, tail = m.groups()
+        for w in WHOLE_WORDS:
+            for i in range(1, len(w)):
+                if t.endswith(w[:i]) and tail.startswith(w[i:]) and not t.endswith('의' + w[:i]):
+                    if log is not None:
+                        log.append(f'{t}[]{w[i:]} → [{t}{w[i:]}]')
+                    return f'<span class="b {cls}">{t}{w[i:]}</span>{tail[len(w) - i:]}'
+        return m.group(0)
+    return RIGHT.sub(one, html)
 
 
 def fix_blanks(html, log=None):
+    html = fix_right(html, log)
     def one(m):
         pre, cls, t = m.group(1), m.group(2), m.group(3)
         key = (pre, t)

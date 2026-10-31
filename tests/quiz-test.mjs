@@ -121,9 +121,9 @@ if (six) {
 await page.evaluate(() => { SCHED.find((x) => x.n === 3).d = "2020-01-01"; showTab("today"); }); await sleep(500);
 await page.evaluate(() => renderers.today()); await sleep(300);
 const qb = await page.evaluate(() => { const b = document.querySelector('[data-prep="quiz"]'); return b ? { t: b.textContent.trim(), laws: b.dataset.laws } : null; });
-ok("오늘 카드에 '기출·문제 풀기 (N)' 버튼 (4차=인사관리시행규칙)", qb && /기출·문제 풀기 \(\d+\)/.test(qb.t) && qb.laws === "인사관리시행규칙", JSON.stringify(qb));
+ok("오늘 카드에 '기출·문제 풀기 (N)' 버튼 (10/29 이후 5차=보수운영규정)", qb && /기출·문제 풀기 \(\d+\)/.test(qb.t) && qb.laws === "보수운영규정", JSON.stringify(qb));
 await page.evaluate(() => document.querySelector('[data-prep="quiz"]').click());
-ok("버튼 → 기출 탭에서 그 법령 문제로 시작", await waitFor(page, () => document.getElementById("p-exam").classList.contains("on") && X.sess && X.grp === "custom" && X.queue.every((q) => q.area === "인사관리시행규칙"), null, 15000));
+ok("버튼 → 기출 탭에서 그 법령 문제로 시작", await waitFor(page, () => document.getElementById("p-exam").classList.contains("on") && X.sess && X.grp === "custom" && X.queue.every((q) => q.area === "보수운영규정"), null, 15000));
 await click("#x-end"); await click("#x-home");
 
 /* ── 오늘 추천의 오답노트 수 ── */

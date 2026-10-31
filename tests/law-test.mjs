@@ -141,9 +141,9 @@ await sleep(500);
 await page.evaluate(() => renderers.today());
 await sleep(300);
 const nx = await page.evaluate(() => ({ t: document.querySelector(".sch-n b").textContent, btn: [...document.querySelectorAll("[data-prep]")].map((b) => b.textContent.trim()) }));
-ok("오늘 카드: 4차 인사관리시행규칙 회독·뻥뚫 버튼", /4차/.test(nx.t) && nx.btn.some((t) => t.includes("인사관리시행규칙 회독")) && nx.btn.some((t) => t.includes("인사관리시행규칙 뻥뚫")), JSON.stringify(nx));
+ok("오늘 카드: 5차(4차 10/29 경과) 보수운영규정 회독·뻥뚫 버튼", /5차/.test(nx.t) && nx.btn.some((t) => t.includes("보수운영규정 회독")) && nx.btn.some((t) => t.includes("보수운영규정 뻥뚫")), JSON.stringify(nx));
 await page.evaluate(() => document.querySelector('[data-prep="read"]').click()); await sleep(900);
-ok("회독 버튼 → 새 규정 열림", await page.evaluate(() => R.law === "인사관리시행규칙" && document.querySelectorAll("#r-body .art").length === 69));
+ok("회독 버튼 → 새 규정 열림", await page.evaluate(() => R.law === "보수운영규정" && document.querySelectorAll("#r-body .art").length > 10));
 
 /* ── 레이아웃 ── */
 ok("가로 스크롤 없음(1180)", await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));

@@ -64,11 +64,11 @@ try {
     const dates=D.days.map(d=>d.date),schedule=SCHED.map(s=>s.d);
     try {
       D.days.forEach(d=>d.date='2000-01-01');
-      SCHED.filter(s=>s.n<=3).forEach(s=>s.d='2000-01-01');
+      SCHED.filter(s=>s.n<=4).forEach(s=>s.d='2000-01-01');
       dayIdx=D.days.length-1;renderers.today();
     } finally {D.days.forEach((d,i)=>d.date=dates[i]);SCHED.forEach((s,i)=>s.d=schedule[i]);}
   });
-  assert.match(await page.$eval('[data-om-launch]',e=>e.textContent),/인사관리시행규칙/,'일일표 종료 후 다음 스터디 과목 안내');
+  assert.match(await page.$eval('[data-om-launch]',e=>e.textContent),/보수운영규정/,'일일표 종료 후 다음 스터디 과목 안내(4차 인사관리시행규칙 10/29 이후 → 5차)');
   console.log('PASS 전 과목 648개 항목 보존, 과목별 일일 안내, 모바일·태블릿·다크 화면');
 
   // 새 브라우저 페이지에서 실패/재시도와 늦게 도착한 응답을 재현한다.

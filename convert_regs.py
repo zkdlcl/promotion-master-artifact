@@ -150,8 +150,9 @@ def table_html(t):
     t = parse_table(t)
     if not t:
         return ''
-    cell = lambda c: esc(paren(str(c if c is not None else ''))).replace('\n', '<br>')
-    bcell = lambda c: blanks(paren(str(c if c is not None else '')), True).replace(chr(10), '<br>')   # 본문 칸은 숫자·주체·동사 빈칸도 만든다
+    bold = lambda s, f: ''.join({'<strong>': '<b>', '</strong>': '</b>'}.get(p) or f(p) for p in re.split(r'(</?strong>)', s) if p)   # 표 칸의 개정 강조도 본문(inline)처럼 <b>
+    cell = lambda c: bold(paren(str(c if c is not None else '')), esc).replace('\n', '<br>')
+    bcell = lambda c: bold(paren(str(c if c is not None else '')), lambda p: blanks(p, True)).replace(chr(10), '<br>')   # 본문 칸은 숫자·주체·동사 빈칸도 만든다
     h = ''
     if t.get('headers'):
         h += '<tr>' + ''.join(f'<th>{cell(c)}</th>' for c in t['headers']) + '</tr>'

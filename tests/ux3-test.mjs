@@ -68,7 +68,7 @@ ok("10차: 운영규정+인사관리시행규칙 연결", sp[9].o.includes("운�
 /* 초성 옵션 */
 await page.evaluate(() => showTab("bt")); await sleep(200);
 await click('[data-btu="1"]'); await click('[data-md="type"]'); await click('[data-ch="1"]'); await click('[data-ord="num"]'); await click('[data-max="5"]'); await click('[data-cnt="5"]');
-ok("초성 칩 + 8줄", await page.evaluate(() => document.querySelectorAll("#p-bt .cs-row").length === 8 && document.querySelector('[data-ch="1"]').getAttribute("aria-pressed") === "true" && S.btp.ch === 1));
+ok("초성 칩 + 9줄", await page.evaluate(() => document.querySelectorAll("#p-bt .cs-row").length === 9 && document.querySelector('[data-ch="1"]').getAttribute("aria-pressed") === "true" && S.btp.ch === 1));
 await click("#bt-start");
 ok("초성 처음부터 표시(placeholder)", await page.evaluate(() => { const i = [...document.querySelectorAll("#bt-art .bt-in")]; return i.length > 0 && i.every((x) => x.placeholder.length > 0); }));
 await page.screenshot({ path: "ux3-bt-ch.png" });

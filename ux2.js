@@ -38,10 +38,10 @@ $('#p-exam').addEventListener('click', e => {
 });
 
 /* ═════════ 🕳 뻥뚫: 난이도·빈칸 수를 고르고 조문의 빈칸을 직접 채운다 ═════════ */
-const BT = Object.assign({law:'조직법', topic:'0', lv:2, max:10, md:'type', cnt:10, ord:'weak', ch:0}, S.btp || {},
-  {sess:false, done:false, queue:[], i:0, res:[], checked:false});
+const BT = Object.assign({law:'조직법', topic:'0', lv:2, max:10, md:'type', cnt:10, ord:'weak', ch:0, shuf:1}, S.btp || {},
+  {sess:false, done:false, queue:[], i:0, res:[], checked:false, salts:{}});
 const btRec = id => (S.bt && S.bt[id]) || null;
-const btPrefs = () => { S.btp = {law:BT.law, topic:BT.topic, lv:BT.lv, max:BT.max, md:BT.md, cnt:BT.cnt, ord:BT.ord, ch:BT.ch}; save(); };
+const btPrefs = () => { S.btp = {law:BT.law, topic:BT.topic, lv:BT.lv, max:BT.max, md:BT.md, cnt:BT.cnt, ord:BT.ord, ch:BT.ch, shuf:BT.shuf}; save(); };
 const LVD = {1:['쉬움', '숫자·주체(기관·장관)만 가립니다.'], 2:['보통', '숫자·주체에 승인·의결 같은 동사까지 가립니다.'], 3:['어려움', '조사·접속어만 남기고 낱말을 가립니다.']};
 const btNorm = s => String(s).replace(/\s+/g, '');
 function btTopics(law){
@@ -70,7 +70,8 @@ function btPick(){
 const CK_KEEP = new Set(['경우','다음','해당','등','수','때','것','바','위','각호','같은','관한','대한','따른','의한','위한','따라','의하여','위하여','대하여','관하여','정하는','정한','하는','하고','하며','하거나','있는','없는','이러한','그밖에','밖의','그','이','다른','삭제','해당하','비고']);
 const CK_JOSA = /^(?:으로서|으로써|으로부터|에게서|에서는|에서도|으로는|으로도|까지는|부터는|에게는|에서|에게|으로|로서|로써|로부터|까지|부터|보다|마다|조차|에는|에도|에의|와의|과의|에만)$/;
 const CZ_RATE = {2: 30, 3: 65};
-function czHash(str){ let h = 2166136261; for (let i = 0; i < str.length; i++){ h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0) % 100; }
+let CZ_SALT = '';   /* 뻥뚫 🔴: 조문마다 세션 단위로 바뀌는 값 — 비어 있으면 늘 같은 자리 */
+function czHash(str){ str += CZ_SALT; let h = 2166136261; for (let i = 0; i < str.length; i++){ h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0) % 100; }
 function czSpan(txt){ const b = document.createElement('span'); b.className = 'b b3'; b.textContent = txt; return b; }
 function clozeIn(root, lv){
   lv = +lv || 3; const rate = CZ_RATE[lv] || 65;
@@ -164,6 +165,7 @@ function drawBtHome(){
     <div class="cs-row"><span class="cs-lab">방식</span><div class="cs">${[['type', '✍️ 직접 쓰기'], ['tap', '👆 눌러서 확인']].map(m => chip('data-md', m[0], m[1], BT.md === m[0])).join('')}</div></div>
     <div class="cs-row"><span class="cs-lab">초성</span><div class="cs">${[[0, '숨김'], [1, '처음부터 보이기']].map(m => chip('data-ch', m[0], m[1], BT.ch === m[0])).join('')}</div></div>
     <div class="cs-row"><span class="cs-lab">조문 수</span><div class="cs">${[[5, '5개'], [10, '10개'], [20, '20개'], [0, '전부']].map(m => chip('data-cnt', m[0], m[1], BT.cnt === m[0])).join('')}</div></div>
+    <div class="cs-row"><span class="cs-lab">빈칸 자리</span><div class="cs">${[[1, '🔀 매번 바꾸기'], [0, '고정']].map(m => chip('data-shuf', m[0], m[1], BT.shuf === m[0])).join('')}</div></div>
     <div class="cs-row"><span class="cs-lab">순서</span><div class="cs">${[['weak', '약한 것 먼저'], ['num', '번호순'], ['rand', '무작위']].map(m => chip('data-ord', m[0], m[1], BT.ord === m[0])).join('')}</div></div>
   </div>
   </div><div class="bt-r">
@@ -229,6 +231,7 @@ $('#p-bt').addEventListener('click', e => {
   if (pick('data-ch', v => { BT.ch = +v; })) return;
   if (pick('data-cnt', v => { BT.cnt = +v; })) return;
   if (pick('data-ord', v => { BT.ord = v; })) return;
+  if (pick('data-shuf', v => { BT.shuf = +v; })) return;
   const ga = t.closest('[data-goart]'); if (ga){ showTab('read'); setTimeout(() => goRef('a|' + ga.dataset.goart), 60); return; }
   const tap = t.closest('.bt-tap'); if (tap){ tap.classList.toggle('rev'); return; }
   if (id === 'bt-start'){ const q = btPick(); if (!q.length){ toast('출제할 조문이 없습니다.'); return; } BT.queue = q; BT.i = 0; BT.res = []; BT.sess = true; BT.done = false; drawBt(); window.scrollTo(0, 0); }

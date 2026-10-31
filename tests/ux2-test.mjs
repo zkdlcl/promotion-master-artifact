@@ -52,7 +52,7 @@ const b1 = await page.evaluate(() => ({
   start: document.getElementById("bt-start").textContent,
   tabs: [...document.querySelectorAll(".tab")].map((t) => t.textContent.trim()),
 }));
-ok("뻥뚫 탭 + 설정 8줄(범위 select·화면 키보드 포함)", b1.rows === 8 && b1.topics >= 5 && b1.tabs.includes("뻥뚫"), JSON.stringify({ rows: b1.rows, topics: b1.topics }));
+ok("뻥뚫 탭 + 설정 9줄(범위 select·화면 키보드·빈칸 자리 포함)", b1.rows === 9 && b1.topics >= 5 && b1.tabs.includes("뻥뚫"), JSON.stringify({ rows: b1.rows, topics: b1.topics }));
 ok("시작 버튼 문구", /시작 \(\d+개 조문\)/.test(b1.start), b1.start);
 await page.screenshot({ path: "ux2-bt-home.png" });
 

@@ -40,7 +40,7 @@ btBuild = function(a){
     if (!keep) b.replaceWith(document.createTextNode(b.textContent));
   });
   root.normalize();
-  if (BT.lv === 3) clozeIn(root);
+  if (BT.lv === 3){ const id = artId(a); CZ_SALT = BT.shuf ? (BT.salts[id] = BT.salts[id] || Math.random().toString(36).slice(2, 7)) : ''; try { clozeIn(root); } finally { CZ_SALT = ''; } }
   let bl = $$('.b', root), keep = null;
   const only = BT.only && BT.only[artId(a)];
   if (only) keep = only;
@@ -89,7 +89,7 @@ btRecord = function(ok, tot){
 document.addEventListener('click', e => {
   const t = e.target; if (!t.closest || !t.closest('#p-bt')) return;
   if (t.id === 'bt-retry'){ BT.only = {}; BT.res.filter(r => r.ok < r.tot).forEach(r => { BT.only[r.id] = new Set(r.miss || []); }); }
-  else if (t.id === 'bt-home' || t.id === 'bt-start') BT.only = null;
+  else if (t.id === 'bt-home' || t.id === 'bt-start'){ BT.only = null; BT.salts = {}; }
 }, true);
 /* 처음 열고 Tab → 첫 빈칸 */
 document.addEventListener('keydown', e => {

@@ -13,10 +13,19 @@
  3. 정답 노출: 같은 정답 낱말이 질문의 다른 곳에 그대로 있으면 쓰지 않는다.
  4. 긴 문장 자르기: 빈칸 위치를 표식으로 잡고 그 주변만 남긴다 (예전에는 빈칸을 못 찾아 빈칸 없는 카드 9장이 생겼음).
  마지막에 check() 가 모든 카드를 다시 검사하고, 하나라도 어기면 파일을 쓰지 않고 멈춘다.
+
+기출 함정 카드 (kb/exam_kb.json 의 points[].trap):
+ - 틀린 보기가 바꾼 원문 낱말(orig)을 빈칸으로 하는 카드. 조직법·정관·운영규정까지 10개 규정 모두 만든다.
+ - 같은 자리의 일반 카드가 이미 있으면 새로 만들지 않고 그 카드에 trap 만 붙인다 (기존 카드 id 는 그대로).
+ - 카드 필드 trap: 시험에서 바꿔 낸 말 목록('' = 빠뜨림), ty: 나온 해.
+ - 쓰지 않는 것: 끼워 넣음(원문에 빈칸 자리가 없음), 개정차이 문항(옛 정답이 함정처럼 보임), 정답이 2~20자 밖, 정답 노출.
+ - 원문 낱말이 시험 함정 그 자체이므로 찍기 카드 규칙(1)은 적용하지 않는다.
 """
 import json, re, os, sys, html as H, hashlib
 
 SP = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.join(SP, 'kb'))
+import kb_lib
 OUT = os.path.join(SP, 'site', 'cards_new.json')
 # (파일 id, 규정 이름, 주제 번호, 차수, 조문당 최대 카드 수)
 LAWS = [
@@ -108,12 +117,12 @@ def sentence(lines, li, bi):
     return sent
 
 
-def why_not(sent, txt, head=''):
+def why_not(sent, txt, head='', trap=False):
     """이 빈칸을 카드로 쓰지 않을 이유. 괜찮으면 None. head 는 질문 머리말(규정·조문·제목)."""
     if len(re.sub(r'[\s(?)' + MARK + ']', '', sent)) < 10: return '문장 짧음'
     if in_parens(sent): return '괄호 안 빈칸'
     if leaks(head + ' ' + sent, txt): return '정답 노출'
-    if txt in GENERIC and (len(sent) < GENERIC_MIN or GENERIC_VAGUE.search(sent)): return '찍기 카드'
+    if not trap and txt in GENERIC and (len(sent) < GENERIC_MIN or GENERIC_VAGUE.search(sent)): return '찍기 카드'
     return None
 
 
@@ -152,6 +161,112 @@ def make(fid, law, topic, K, skipped):
     return cards
 
 
+TRAP_NO_TABLE = {'재무규정:별표1', '인사관리시행규칙:별표5'}   # 칸만 떼면 열 제목이 없어 풀 수 없는 표
+
+
+def hand_topics():
+    """손 카드의 src 로 조직법·정관·운영규정의 {규정: {조문 번호: 주제}} 를 만든다."""
+    out = {}
+    for c in kb_lib._base_data()['cards']:
+        law = None
+        for seg in re.split(r'\s*·\s*', c['src']):
+            m = re.match(r'조직법|정관|운영규정', seg)
+            if m: law = m.group(0)
+            for x in re.findall(r'제(\d+)조', seg):
+                if law: out.setdefault(law, {}).setdefault(int(x), c['t'])
+    return out
+
+
+def trap_topic(law, no, hand):
+    """함정 카드의 주제: 새 규정은 그 규정의 주제, 손 카드 규정은 같은 조문(없으면 가장 가까운 조문)의 주제."""
+    for _, name, t, _, _ in LAWS:
+        if name == law: return t
+    m = re.match(r'\d+', no)
+    if not m: return 11 if law == '운영규정' else 10     # 별표 등
+    n = int(m.group(0))
+    return hand[law][min(hand[law], key=lambda x: (abs(x - n), x))]
+
+
+def trap_line(text, quote, orig):
+    """원문에서 함정 낱말이 든 줄을 찾아 (줄 번호, 낱말 위치, 줄 목록)을 돌려준다. 못 찾으면 None."""
+    lines = text.split('\n')
+    frag = next((f.strip() for f in quote.split('…') if orig in f), None)
+    if frag is None: return None
+    for i, ln in enumerate(lines):
+        if frag in ln: return i, ln.index(frag) + frag.index(orig), lines
+    hits = [i for i, ln in enumerate(lines) if kb_lib.norm(frag) in kb_lib.norm(ln) and ln.count(orig) == 1]
+    return (hits[0], lines[hits[0]].index(orig), lines) if len(hits) == 1 else None
+
+
+def trap_sentence(lines, li, pos, orig):
+    """빈칸을 넣은 카드 문장 후보들. 호·목 줄은 위 항을 맥락으로 붙이고, 뒤로 갈수록 짧다 (정답 노출을 피하려고)."""
+    ln = lines[li]
+    full = ln[:pos] + MARK + ln[pos + len(orig):]
+    lead = ''
+    if re.match(r'\d+\.|[가-하]\.', ln):
+        up = next((x for x in reversed(lines[:li]) if not re.match(r'\d+\.|[가-하]\.', x)), '')
+        cut = up[:42]
+        if cut.count('(') > cut.count(')'): cut = cut[:cut.rindex('(')].rstrip()
+        lead = cut + ('…' if len(up) > len(cut) else '') + ' ' if cut else ''
+    i = full.index(MARK)
+    lo = full.rfind('. ', 0, i) + 2 if full.rfind('. ', 0, i) >= 0 else 0
+    hi = full.find('. ', i)
+    clause = full[lo:hi + 1 if hi >= 0 else len(full)]
+    out = []
+    for t in (lead + full, lead + clause):
+        if len(t) > MAX_LEN:
+            k = t.index(MARK); a = max(0, k - 105); b = min(len(t), k + 125)
+            t = ('…' if a else '') + t[a:b] + ('…' if b < len(t) else '')
+        if t not in out: out.append(t)
+    return out
+
+
+def add_traps(cards, skipped):
+    """기출 함정을 일반 카드에 붙이거나 새 카드로 만든다. (붙인 수, 새 카드 목록)"""
+    kb = json.load(open(os.path.join(SP, 'kb', 'exam_kb.json'), encoding='utf8'))
+    A, hand, found = kb_lib.articles(), hand_topics(), {}
+    def skip(why): skipped['함정 ' + why] = skipped.get('함정 ' + why, 0) + 1
+    for iid in sorted(kb['items']):
+        r = kb['items'][iid]
+        for p in r.get('points', []):
+            t = p.get('trap')
+            if not t: continue
+            orig, alt = (t.get('orig') or '').strip(), (t.get('alt') or '').strip()
+            why = ('끼워 넣음' if not orig else '개정차이' if r['status'] == '개정차이' else
+                   '정답 길이' if not 2 <= len(orig) <= 20 else '표 칸' if p['art'] in TRAP_NO_TABLE else None)
+            hit = trap_line(A[p['art']]['text'], p['quote'], orig) if not why else None
+            if why or not hit:
+                skip(why or '원문 줄 못 찾음')
+                continue
+            li, pos, lines = hit
+            f = found.setdefault((p['art'], li, pos, orig), {'alts': [], 'years': set(), 'lines': lines})
+            if alt not in f['alts']: f['alts'].append(alt)
+            f['years'].add(r['year'])
+    merged, new = 0, []
+    for (art, li, pos, orig), f in found.items():
+        law, no = art.split(':', 1)
+        ln = f['lines'][li]
+        before, after = kb_lib.norm(ln[max(0, pos - 12):pos]), kb_lib.norm(ln[pos + len(orig):pos + len(orig) + 12])
+        same = [c for c in cards if c['art'] == art and c['a'] == orig
+                and before in kb_lib.norm(c['q'].split(Q)[0]) and after in kb_lib.norm(c['q'].split(Q)[1])]
+        if same:
+            same[0]['trap'] = f['alts']; same[0]['ty'] = sorted(f['years']); merged += 1
+            continue
+        title = (A[art]['title'] or '').strip()
+        heads = [f"【{law} {nl(no)}{(' ' + title) if title else ''}】", f"【{law} {nl(no)}】"]
+        pick = next(((h, s) for s in trap_sentence(f['lines'], li, pos, orig) for h in heads if not why_not(s, orig, h, True)), None)
+        if not pick or re.search('각 호의 ' + MARK, pick[1]):   # 각 호 목록 없이는 '다음 각 호의 ( ? )' 를 알 수 없다
+            skip('정답 노출·문장 짧음')
+            continue
+        cid = 't' + hashlib.md5(f"{art}|{orig}|{before}|{after}".encode('utf8')).hexdigest()[:8]
+        bare = re.sub(r'(으로|로|과|와)$', '', orig)    # 빈칸 답에 조사까지 든 경우 낱말만 써도 맞게
+        new.append({'id': cid, 't': trap_topic(law, no, hand), 'q': f"{pick[0]} {pick[1].replace(MARK, Q)}", 'a': orig,
+                    'src': f"{law} {nl(no)}", 'art': art, 'alt': sorted(set(alts(orig)) | ({bare} if len(bare) >= 2 and bare != orig else set())),
+                    'trap': f['alts'], 'ty': sorted(f['years'])})
+    new.sort(key=lambda c: c['id'])
+    return merged, new
+
+
 def check(cards):
     """모든 카드가 규칙을 지키는지 검사. 어긴 카드 목록을 돌려준다."""
     bad = []
@@ -166,7 +281,7 @@ def check(cards):
         if '~' in body and not re.search(r'[\d급년호월일세상만]~\s*\d', body): probs.append('~ 표기 남음')
         if '�' in q or '�' in a or MARK in q: probs.append('깨진 글자/표식')
         if not a.strip(): probs.append('정답 비어 있음')
-        reason = why_not(body.replace(Q, MARK), a, head) if body.count(Q) == 1 else None
+        reason = why_not(body.replace(Q, MARK), a, head, c['id'][0] == 't') if body.count(Q) == 1 else None
         if reason: probs.append(reason)
         bad += [(c['id'], p + ' | ' + q[:70]) for p in probs]
     return bad
@@ -189,6 +304,9 @@ if __name__ == '__main__':
         c = make(fid, law, topic, K, skipped)
         allc += c
         print(f'{law}: 카드 {len(c)}장 (주제 {topic}, {unit}차)')
+    merged, tc = add_traps(allc, skipped)
+    allc += tc
+    print(f'기출 함정: 일반 카드에 붙임 {merged}, 함정 카드 {len(tc)}장')
     print('걸러낸 빈칸:', ', '.join(f'{k} {v}' for k, v in sorted(skipped.items())) or '없음')
     bad = check(allc)
     if bad:

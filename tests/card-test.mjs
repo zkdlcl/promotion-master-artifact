@@ -3,7 +3,7 @@ import { readFileSync } from "fs";
 
 // 새 카드 수는 make_cards.py 결과에 따라 바뀌므로 파일에서 읽는다 (기존 손 카드는 366장 고정)
 const CN = JSON.parse(readFileSync(new globalThis.URL("../site/cards_new.json", import.meta.url), "utf8")).cards;
-const OLD = 366, NEW = CN.length, G4 = CN.filter((c) => c.t === 21).length;
+const OLD = 366, NEW = CN.length, G4 = CN.filter((c) => c.t === 21).length, NT = CN.filter((c) => c.t < 21).length;
 
 const URL = "http://localhost:8765/index.html";
 const browser = await puppeteer.launch({ executablePath: "C:/Program Files/Google/Chrome/Application/chrome.exe", headless: "new", args: ["--no-sandbox"] });
@@ -21,7 +21,7 @@ await sleep(500);
 const click = async (sel) => { await page.evaluate((s) => document.querySelector(s).click(), sel); await sleep(250); };
 
 /* ── 데이터 ── */
-const dt = await page.evaluate(() => ({ cards: D.cards.length, newc: D.cards.filter((c) => c.t >= 21).length, topics: Object.keys(D.topics).length, ids: new Set(D.cards.map((c) => c.id)).size, units: D.cardUnits }));
+const dt = await page.evaluate(() => ({ cards: D.cards.length, newc: D.cards.filter((c) => c.t >= 21 || /^t/.test(c.id) && c.art).length, topics: Object.keys(D.topics).length, ids: new Set(D.cards.map((c) => c.id)).size, units: D.cardUnits }));
 ok(`카드 ${OLD + NEW}장(기존 ${OLD} + 새 ${NEW}), id 중복 없음`, dt.cards === OLD + NEW && dt.newc === NEW && dt.ids === OLD + NEW, JSON.stringify({ cards: dt.cards, newc: dt.newc }));
 const qual = await page.evaluate(() => D.cards.filter((c) => c.t >= 21).filter((c) => (c.q.match(/\(\s\?\s\)/g) || []).length !== 1 || /~/.test(c.q.replace(/[\d급년호월일세상만]~\s*\d/g, "")) || /�/.test(c.q)).map((c) => c.id));
 ok("새 카드 모두 빈칸 1개, ~ 표기·깨진 글자 없음", qual.length === 0, qual.slice(0, 5).join(","));

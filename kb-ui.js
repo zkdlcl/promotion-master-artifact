@@ -2,6 +2,7 @@
 /* ═══════════════ 기출 근거 DB 연결 (kb/ → D.kb) ═══════════════
    1) 기출 풀이: 정답 공개 뒤 근거 조문(누르면 원문 패널) · 함정(원문 → 바꾼 말) · 개정 차이
    2) 회독: 기출에 나온 조문 머리에 '기출 N' 배지
+   3) 복습 카드: 기출 조문·함정 우선, 배지, 칩
    D.kb 는 build_artifact.py 가 kb/exam_kb.json 에서 줄여 넣는다. */
 const KB = D.kb || {items: {}, arts: {}};
 const kbArtLabel = k => { const [law, no] = k.split(':'); return law + ' ' + (no.startsWith('별표') ? no.replace('별표', '별표 ') : no.startsWith('인사서식') ? no.replace('인사서식', '인사서식 ') : nl(no)); };
@@ -52,6 +53,52 @@ function kbBadges(root){
   });
 }
 new MutationObserver(ms => ms.forEach(m => m.addedNodes.forEach(n => n.nodeType === 1 && kbBadges(n)))).observe(document.body, {childList: true, subtree: true});
+
+/* ═════ 복습 카드: 기출 조문·함정 우선 (make_cards.py 의 trap·ty, D.kb.arts) ═════
+   - 카드에 '기출 N' '함정' 배지, 답을 본 뒤 시험에서 바꿔 낸 말
+   - 같은 상자 안에서는 함정 → 기출 조문 → 나머지 순서 ('전체 무작위'는 그대로)
+   - 칩으로 기출 조문·함정 카드만 고른다 */
+Q.kbf = 'all';
+const cardKb = c => {
+  const hits = (c.art ? [c.art] : cardArts(c)).map(k => KB.arts[k]).filter(Boolean);
+  return hits.length ? {n: Math.max(...hits.map(a => a.n)), y: Math.max(...hits.flatMap(a => a.y))} : null;
+};
+const cardTier = c => c.trap ? 0 : cardKb(c) ? 1 : 2;
+const KBF = {all: () => true, ex: c => cardTier(c) < 2, trap: c => !!c.trap};
+const _buildQueue = buildQueue;
+buildQueue = function(){
+  const lim = Q.limit; Q.limit = 0;
+  let cs = _buildQueue().filter(KBF[Q.kbf]);
+  Q.limit = lim;
+  if (Q.mode !== 'all') cs = cs.map(c => [c, S.cards[c.id]?.box ?? 0, cardTier(c)]).sort((a, b) => a[1] - b[1] || a[2] - b[2]).map(x => x[0]);
+  return lim ? cs.slice(0, lim) : cs;
+};
+const _drawQuizHome = drawQuizHome;
+drawQuizHome = function(){
+  _drawQuizHome();
+  const scope = $('#q-scope'), lb = scope && scope.closest('label'); if (!lb) return;
+  const pool = (Q.scope ? D.cards.filter(inScope) : D.cards).filter(c => inGroup(c));
+  const chips = [['all', '전체'], ['ex', '기출 조문'], ['trap', '함정']].map(([k, t]) =>
+    `<button class="chip ${Q.kbf === k ? 'on' : ''}" data-kbf="${k}" aria-pressed="${Q.kbf === k}">${t} ${pool.filter(KBF[k]).length}</button>`).join('');
+  lb.insertAdjacentHTML('beforebegin', `<div class="row" style="margin:0 0 8px" role="group" aria-label="기출 기준으로 고르기">${chips}</div>`);
+};
+$('#p-quiz').addEventListener('click', e => {
+  const b = e.target.closest('[data-kbf]'); if (!b) return;
+  syncQ(); Q.kbf = b.dataset.kbf; drawQuizHome();
+});
+const kbTrapLine = c => !c.trap ? '' : `<div class="kbcard"><span class="kbx-l">기출 함정${c.ty ? ` ${c.ty.join('·')}` : ''}</span> ${c.trap.map(t =>
+  t ? `<span class="kbalt">${esc(t)}</span>` : '<span class="kbtag">빠뜨림</span>').join(' ')}</div>`;
+function kbCardMarks(c){
+  const card = $('#p-quiz .card'), last = card && [...card.querySelectorAll(':scope > .badge')].pop(), k = cardKb(c);
+  if (last && !card.querySelector('.kbcb')) last.insertAdjacentHTML('afterend',
+    (k ? `<span class="badge kbcb" title="${k.y}년에도 출제">기출 ${k.n}</span>` : '') + (c.trap ? '<span class="badge kbcb kbct">함정</span>' : ''));
+  const ans = card && card.querySelector('.ans');
+  if (ans && !card.querySelector('.kbcard')) ans.insertAdjacentHTML('afterend', kbTrapLine(c));
+}
+const _drawCardKb = drawCard;
+drawCard = function(){ _drawCardKb(); const c = Q.sess && Q.queue[Q.i]; if (c) kbCardMarks(c); };
+const _revealKb = reveal;
+reveal = function(){ _revealKb(); const c = Q.queue[Q.i]; if (c) kbCardMarks(c); };
 
 /* ═════ 스터디 답지 반영 (kb/study/답지.json → D.stFix) ═════
    2주차 내 답은 처음에 Claude 가채점 기준으로 오답노트에 seed 됐다. 답지로 맞음/틀림이 바뀐 문항만 한 번 바로잡는다.

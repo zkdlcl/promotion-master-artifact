@@ -15,17 +15,18 @@ try {
   const initial=await p.evaluate(()=>buildQueue().map(c=>c.id));
   assert.equal(initial.length,new Set(initial).size);
   await p.screenshot({path:'tests/review-scopes-desktop.png'});
+  // 함정 카드(id t…)는 make_cards.py 결과에 따라 바뀌므로 세지 않는다
   const count=await p.evaluate(()=>{
     const dates=SCHED.map(s=>s.d),result={};
     try {
       for(const n of [9,10,15,16,25]){
         SCHED.forEach(s=>s.d='2000-01-01');SCHED.find(s=>s.n===n).d='2099-01-01';
         Q.group=null;Q.scope=false;Q.mode='all';Q.limit=0;Q.topics.clear();
-        drawQuizHome();result[n]={scope:Q.group,topics:[...new Set(buildQueue().map(c=>c.t))],count:buildQueue().length};
+        drawQuizHome();result[n]={scope:Q.group,topics:[...new Set(buildQueue().map(c=>c.t))],count:buildQueue().filter(c=>c.id[0]!=='t').length};
       }
       // 등록된 마지막 일정 이후, 5월에도 날짜에 묶이지 않은 과목 복습 유지.
       SCHED.forEach(s=>s.d='2000-01-01');Q.group=null;drawQuizHome();
-      result.after={scope:Q.group,count:buildQueue().length,label:document.querySelector('.review-guide').textContent};
+      result.after={scope:Q.group,count:buildQueue().filter(c=>c.id[0]!=='t').length,label:document.querySelector('.review-guide').textContent};
       Q.group='g6a';drawQuizHome();result.finance=buildQueue().length;
     } finally {SCHED.forEach((s,i)=>s.d=dates[i]);}
     return result;
@@ -44,7 +45,7 @@ try {
     document.getElementById('q-start').click();document.getElementById('q-in').value='입력 유지 확인';
   });
   const session=await p.evaluate(()=>Q.queue.map(c=>c.id));
-  assert.equal(session.length,74);assert.equal(new Set(session).size,74);
+  assert.equal(session.filter(i=>i[0]!=='t').length,74);assert.equal(new Set(session).size,session.length);
   await p.$eval('[data-om-global]',e=>e.click());
   await p.waitForSelector('.om-nav');
   await p.$eval('[data-om-law="국제인도법"]',e=>e.click());

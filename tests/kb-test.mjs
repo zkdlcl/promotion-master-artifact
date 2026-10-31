@@ -32,6 +32,30 @@ const pk = await page.evaluate(() => ({ open: !document.getElementById("pk").hid
 ok("근거 조문을 누르면 원문 패널", pk.open && pk.ti.length > 0, JSON.stringify(pk));
 await page.evaluate(() => closePeek()); await page.screenshot({ path: "kb-exam.png" });
 
+// 복습 카드: 함정 카드·기출 배지·우선순서
+await page.evaluate(() => { X.sess = null; showTab("quiz"); Q.sess = null; Q.group = "g2"; drawQuizHome(); }); await sleep(300);
+const fc = await page.evaluate(() => [...document.querySelectorAll("[data-kbf]")].map((b) => b.textContent.trim()));
+ok("카드 고르기 칩 3개", fc.length === 3 && /^함정 \d+/.test(fc[2]), fc.join(" | "));
+await page.evaluate(() => document.querySelector('[data-kbf="trap"]').click()); await sleep(200);
+const tq = await page.evaluate(() => { Q.mode = "all"; Q.limit = 0; Q.scope = false; const q = buildQueue(); return { n: q.length, all: q.every((c) => c.trap), on: document.querySelector('[data-kbf="trap"]').classList.contains("on") }; });
+ok("함정 칩: 함정 카드만", tq.n > 0 && tq.all && tq.on, JSON.stringify(tq));
+await page.evaluate(() => { Q.mode = "new"; Q.kbf = "all"; Q.limit = 0; }); 
+const ord = await page.evaluate(() => { const q = buildQueue().filter((c) => !S.cards[c.id]).map(cardTier); return q.every((t, i) => !i || q[i - 1] <= t); });
+ok("같은 상자 안에서 함정 → 기출 → 나머지 순서", ord);
+const lim = await page.evaluate(() => { Q.limit = 10; const n = buildQueue().length; Q.limit = 0; return n; });
+ok("장수 제한 유지", lim === 10, String(lim));
+await page.evaluate(() => { const c = D.cards.find((c) => c.trap && c.trap[0] && !S.cards[c.id]); Q.mode = "due"; Q.study = false; Q.queue = [c]; Q.i = 0; Q.hist = []; Q.sess = { t: Date.now(), tag: "", n: 0, ok: 0, retryOk: 0, retry: 0, ms: 0, study: 0 }; drawCard(); }); await sleep(200);
+const b1 = await page.evaluate(() => ({ b: [...document.querySelectorAll(".kbcb")].map((x) => x.textContent), line: !!document.querySelector(".kbcard"), a: Q.queue[0].a, q: document.querySelector(".card .q").textContent }));
+ok("함정 배지, 정답 전에는 함정 낱말 숨김", b1.b.includes("함정") && !b1.line, JSON.stringify(b1.b));
+ok("질문에 정답이 안 보임", !b1.q.includes(b1.a), b1.q.slice(0, 80));
+await page.evaluate(() => reveal()); await sleep(200);
+const line = await page.evaluate(() => document.querySelector(".kbcard")?.textContent || "");
+ok("정답 뒤 시험에서 바꿔 낸 말", /기출 함정/.test(line) && line.includes(await page.evaluate(() => Q.queue[0].trap[0])), line);
+await page.setViewport({ width: 390, height: 780 }); await page.screenshot({ path: "kb-card-phone.png" }); await page.setViewport({ width: 1180, height: 820 }); await page.screenshot({ path: "kb-card.png" });
+await page.evaluate(() => { Q.sess = null; Q.study = true; Q.queue = [D.cards.find((c) => c.trap && !S.cards[c.id])]; Q.i = 0; Q.hist = []; Q.sess = { t: Date.now(), tag: "", n: 0, ok: 0, retryOk: 0, retry: 0, ms: 0, study: 0 }; drawCard(); }); await sleep(200);
+ok("익히기 화면에도 함정 표시", await page.evaluate(() => !!document.querySelector(".kbcard") && !!document.querySelector(".kbct")));
+await page.evaluate(() => { Q.sess = null; Q.kbf = "all"; });
+
 // 회독: 기출에 나온 조문 배지
 const art = Object.keys(KB.arts).find((k) => k.startsWith("운영규정:") && !k.includes("별표"));
 await page.evaluate(() => { X.sess = null; R.law = "운영규정"; R.topic = "0"; showTab("read"); }); await sleep(1200);

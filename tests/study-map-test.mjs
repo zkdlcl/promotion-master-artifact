@@ -35,7 +35,7 @@ try {
     total+=result.count;
     console.log(`PASS ${law}: ${result.chapters.length}개 묶음, ${result.count}개 조문·문단`);
   }
-  assert.equal(total,648);
+  assert.equal(total,649);
   assert.equal(await page.evaluate(()=>JSON.stringify(S)),before,'모든 지도 열람 시 학습 기록 보존');
   for(const [law,view] of [['조직법',2],['정관',2],['국제인도법',2]]){
     await page.evaluate(law=>OPStudy.launch(law),law);

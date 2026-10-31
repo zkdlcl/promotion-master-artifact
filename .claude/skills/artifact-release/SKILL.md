@@ -17,8 +17,8 @@ python -X utf8 build_artifact.py   # kb 검사 통과해야 빌드됨 → orgmas
 ## 2. 테스트 (site 를 8765 포트로)
 ```
 cd site && python -m http.server 8765        # 백그라운드
-cd tests && npm install
-for t in *-test.mjs; do node $t | grep -v ^PASS; done   # PASS 말고 나오는 줄이 없어야 통과
+(cd tests && npm install)
+for t in tests/*-test.mjs; do node $t | grep -v ^PASS; done   # 저장소 루트에서 돌린다(캡처 경로가 tests/…). PASS 말고 나오는 줄이 없어야 통과
 ```
 알려진 무해 실패는 없다. 실패하면 앱 결함인지 테스트 가정인지 구분하고, 테스트 가정이면 테스트를 고쳐 다시 PASS 만 나오게 한다(실패를 '무해'로 남겨 두지 않는다).
 화면은 태블릿 가로(1180×820)·세로(820×1180)·폰(390×844), 라이트·다크로 캡처해 눈으로 확인한다.

@@ -85,6 +85,7 @@ def apply(exam, db=None):
         if e.get('my') and _ok(e, r['prev']) != _ok(e, r['a']):
             fix[r['id']] = [_ok(e, r['prev']), _ok(e, r['a'])]
         e['a'], e['ex'] = r['a'], ex
+        if r.get('q'): e['q'] = r['q']   # 문제 글에 답이 드러난 경우만 교체
     for x in db.get('add', []):   # 같은 묶음의 맨 뒤에 넣는다
         idx = [n for n, e in enumerate(exam) if e['grp'] == x['grp']]
         k = max(idx) + 1 if idx else len(exam)   # 새 묶음(st3 …)은 맨 뒤에서 시작
